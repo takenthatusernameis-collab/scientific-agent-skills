@@ -1,0 +1,7 @@
+{
+  "objective": "Execute the real historical-data BTC volume-delta V2 backtest",
+  "state": "EXECUTION_REQUESTED",
+  "reason": "No workflow run existed for the prior V2 branch head; fresh PR is the autonomous execution surface.",
+  "empirical_data_required": true,
+  "synthetic_fallback": "technical_only"
+}
