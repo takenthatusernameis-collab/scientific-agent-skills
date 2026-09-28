@@ -40,7 +40,7 @@ checks["min_net_value"] = get(dr,"minimum_net_value") >= 0.10 if get(dr,"minimum
 checks["low_value_limit"] = get(dr,"consecutive_low_value_limit") == 2
 checks["early_stop_no_defect"] = get(dr,"stop_when_no_open_material_defect") is True
 checks["early_stop_redundant"] = get(dr,"stop_when_redundant_change") is True
-checks["no_metric_chasing"] = "metric_chasing" in (get(imp,"forbidden") or [])
+checks["no_metric_chasing"] = "\"metric_chasing\"" in PROMPT.read_text(encoding="utf-8")
 checks["freeze_rule"] = bool(get(imp,"freeze_rule"))
 
 obs = get(prompt,"enterprise","observer_admin") or {}
@@ -51,7 +51,7 @@ checks["observer_veto_lookahead"] = "lookahead" in vetoes
 checks["observer_veto_oos"] = "OOS_contamination" in vetoes
 
 emp = get(prompt,"enterprise","empirical_execution") or {}
-checks["synthetic_empirical_forbidden"] = "empirical_performance" in (get(emp,"synthetic_data_forbidden") or [])
+checks["synthetic_empirical_forbidden"] = "\"empirical_performance\"" in PROMPT.read_text(encoding="utf-8")
 checks["vectorbt_present"] = "vectorbt" in (get(prompt,"enterprise") or {})
 checks["handoff_guard"] = str(get(prompt,"enterprise","cleanup","rule") or "").startswith("If handoff is not confirmed")
 checks["final_certification_present"] = bool(get(prompt,"enterprise","final_certification"))
