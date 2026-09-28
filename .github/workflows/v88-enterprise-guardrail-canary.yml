@@ -1,0 +1,47 @@
+name: V88 Enterprise Guardrail Canary
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v88-enterprise-guardrail-canary
+  cancel-in-progress: true
+
+jobs:
+  guardrail-canary:
+    if: >-
+      github.repository == 'takenthatusernameis-collab/scientific-agent-skills' &&
+      github.event.pull_request.head.ref == 'chatgpt/v88-guardrail-canary-20260929'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout canary commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install guardrail parser
+        run: python -m pip install --disable-pip-version-check --no-input pyyaml
+
+      - name: Execute enterprise guardrails
+        run: python scratch/chatgpt_v88/guardrail_canary.py
+
+      - name: Upload guardrail evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v88-enterprise-guardrail-canary
+          path: scratch/chatgpt_v88/guardrail_canary_result.json
+          if-no-files-found: error
+          retention-days: 1
