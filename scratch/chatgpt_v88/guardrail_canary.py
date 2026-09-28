@@ -30,12 +30,12 @@ checks["real_data_only"] = prompt["enterprise"]["operating_model"]["empirical_ex
 imp = prompt["enterprise"]["iterative_improvement"]
 checks["iteration_cap_13"] = imp["maximum_routine_iterations"] == 13
 checks["iteration_14_prohibited"] = imp["iteration_14"] == "PROHIBITED"
-checks["min_material_improvement"] = imp["scoring"]["minimum_material_improvement"] >= 0.15
-checks["min_net_value"] = imp["scoring"]["minimum_net_value"] >= 0.10
-checks["low_value_limit"] = imp["scoring"]["consecutive_low_value_limit"] == 2
+checks["min_material_improvement"] = imp["diminishing_returns_protection"]["minimum_material_improvement"] >= 0.15
+checks["min_net_value"] = imp["diminishing_returns_protection"]["minimum_net_value"] >= 0.10
+checks["low_value_limit"] = imp["diminishing_returns_protection"]["consecutive_low_value_limit"] == 2
 checks["early_stop_no_defect"] = imp["scoring"]["stop_when_no_open_material_defect"] is True
 checks["no_metric_chasing"] = "metric_chasing" in imp["scoring"]["forbidden"]
-checks["freeze_rule"] = "freeze" in imp["scoring"]
+checks["freeze_rule"] = "freeze_rule" in imp
 
 obs = prompt["enterprise"]["observer_admin"]
 checks["observer_veto_project_drift"] = "project_drift" in obs["veto_triggers"]
