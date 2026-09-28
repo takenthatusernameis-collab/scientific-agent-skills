@@ -1,28 +1,45 @@
 name: Maintenance
 
 on:
-  workflow_run:
-    workflows:
-      - "Notebook Validation"
-    types: [completed]
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
 
 permissions:
   actions: write
 
 jobs:
-  purge:
-    if: >-
-      github.event.workflow_run.head_repository.full_name == github.repository &&
-      startsWith(github.event.workflow_run.head_branch, 'chatgpt/')
+  purge-old-research-runs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Remove completed run
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          curl --fail --silent --show-error --request DELETE \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer ${GH_TOKEN}" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}"
+      - name: Remove completed disposable research runs after handoff window
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const cutoff = Date.now() - 60 * 60 * 1000;
+            const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            let removed = 0;
+            for (const run of runs) {
+              const branch = run.head_branch || "";
+              if (!branch.startsWith("chatgpt/")) continue;
+              if (run.status !== "completed") continue;
+
+              const updated = new Date(run.updated_at).getTime();
+              if (!Number.isFinite(updated) || updated >= cutoff) continue;
+
+              await github.rest.actions.deleteWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: run.id
+              });
+              core.info(`Removed disposable run ${run.id} on ${branch}`);
+              removed++;
+            }
+
+            core.info(`Removed ${removed} disposable run(s).`);
