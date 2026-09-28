@@ -1,24 +1,23 @@
-name: ChatGPT Research Run Cleanup
+name: Maintenance
 
 on:
   workflow_run:
     workflows:
-      - "ChatGPT BTC Volume Delta V2 Ephemeral"
+      - "Notebook Validation"
     types: [completed]
 
 permissions:
   actions: write
 
 jobs:
-  cleanup:
+  purge:
     if: >-
-      github.event.workflow_run.conclusion != 'skipped' &&
       github.event.workflow_run.head_repository.full_name == github.repository &&
       startsWith(github.event.workflow_run.head_branch, 'chatgpt/')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Delete completed research run
+      - name: Remove completed run
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
