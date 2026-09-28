@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chatgpt/v88-guardrail-canary-20260929
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -14,14 +17,19 @@ concurrency:
 
 jobs:
   guardrail-canary:
-    if: github.repository == 'takenthatusernameis-collab/scientific-agent-skills'
+    if: >-
+      github.repository == 'takenthatusernameis-collab/scientific-agent-skills' &&
+      (
+        github.event_name == 'push' ||
+        github.event.pull_request.head.ref == 'chatgpt/v88-guardrail-canary-20260929'
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout canary branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
       - name: Set up Python
