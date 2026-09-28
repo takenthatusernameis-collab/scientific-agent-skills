@@ -1,0 +1,87 @@
+name: Maintenance
+
+on:
+  workflow_run:
+    workflows:
+      - "Notebook Validation"
+    types: [completed]
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  purge-run:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      startsWith(github.event.workflow_run.head_branch, 'chatgpt/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Remove completed run
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.deleteWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id
+            });
+
+  purge-old-branches:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Remove stale disposable branches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            const branches = await github.paginate(github.rest.repos.listBranches, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            for (const branch of branches) {
+              if (!branch.name.startsWith('chatgpt/')) continue;
+
+              const commit = await github.rest.repos.getCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: branch.commit.sha
+              });
+              const stamp = commit.data.commit.committer?.date || commit.data.commit.author?.date;
+              if (!stamp || new Date(stamp).getTime() >= cutoff) continue;
+
+              const prs = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${context.repo.owner}:${branch.name}`
+              });
+              for (const pr of prs.data) {
+                await github.rest.pulls.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  state: 'closed'
+                });
+              }
+
+              try {
+                await github.rest.git.deleteRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: `heads/${branch.name}`
+                });
+                core.info(`Removed stale branch ${branch.name}`);
+              } catch (error) {
+                core.warning(`Could not remove ${branch.name}: ${error.message}`);
+              }
+            }
