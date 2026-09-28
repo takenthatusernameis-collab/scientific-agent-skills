@@ -1,0 +1,10 @@
+{
+  "objective":"Execute the BTC volume-delta V2 controlled historical-data backtest.",
+  "completion_artifact":"Verified real-data V2 backtest result with provenance, OOS result, stress result, and hashes.",
+  "execution_branch":"chatgpt/btc-volume-delta-v2-clean-safety",
+  "activation_condition":"If no successful workflow run exists for the current branch head, trigger execution immediately via the push-triggered workflow.",
+  "empirical_requirement":true,
+  "synthetic_fallback":"technical validation only; cannot satisfy empirical completion",
+  "non_goals":["V88 statistical qualification","previously completed BTC volume-delta baseline","AKE/Pionex experiments","new strategy design"],
+  "state":"NOT_STARTED_UNTIL_VERIFIED"
+}
