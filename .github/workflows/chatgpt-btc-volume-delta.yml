@@ -1,37 +1,113 @@
-name: ChatGPT BTC Volume Delta Research Runner
+name: Real Data Backtest Activation
 
 on:
   push:
     branches:
       - chatgpt/btc-volume-delta-runner
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: disposable-real-data-backtest
+  cancel-in-progress: false
+
 jobs:
-  backtest:
+  activation:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - name: Checkout
+      - name: Checkout disposable research branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Run non-Parquet backtest
+      - name: Activate real historical market-data backtest
         run: |
           mkdir -p results
-          python scratch/chatgpt_btc_volume_delta/backtest.py             --start 2024-06-01T00:00:00Z             --end 2026-09-20T00:00:00Z             --lookback 48             --threshold 2.0             --hold-bars 6             --fee-bps 5             --slippage-bps 2             --output results/btc_volume_delta_result.json
+          python scratch/chatgpt_btc_volume_delta/backtest.py \
+            --start 2024-06-01T00:00:00Z \
+            --end 2026-09-20T00:00:00Z \
+            --lookback 48 \
+            --threshold 2.0 \
+            --hold-bars 6 \
+            --fee-bps 5 \
+            --slippage-bps 2 \
+            --output results/btc_volume_delta_result.json
 
-      - name: Upload research artifacts
+      - name: Enforce real-data activation contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          result_path = Path("results/btc_volume_delta_result.json")
+          trades_path = Path("results/btc_volume_delta_result_trades.csv")
+          assert result_path.exists(), "missing result artifact"
+          assert trades_path.exists(), "missing trade artifact"
+
+          result = json.loads(result_path.read_text())
+          exp = result["experiment"]
+          data = result["data"]
+          metrics = result["strategy_metrics"]
+
+          assert exp["parquet_dependency"] is False
+          assert exp["data_source"] == "Binance public spot kline REST API with official static-archive fallback"
+          assert exp["interval"] == "1h"
+          assert exp["lookback_bars"] == 48
+          assert exp["threshold"] == 2.0
+          assert exp["hold_bars"] == 6
+          assert exp["fee_bps_one_way"] == 5.0
+          assert exp["slippage_bps_one_way"] == 2.0
+
+          assert len(data["hashes"]) >= 5, data["hashes"]
+          assert len(exp["alt_universe"]) >= 4, exp["alt_universe"]
+          forbidden = {"BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT"}
+          assert not forbidden.intersection(exp["alt_universe"])
+
+          assert data["bars_common"] >= 5000, data["bars_common"]
+          assert not data["fetch_failures"], data["fetch_failures"]
+          assert all(len(h) == 64 for h in data["hashes"].values())
+
+          assert metrics["trades"] > 100, metrics
+          assert metrics["profit_factor"] is not None, metrics
+          assert metrics["avg_trade"] is not None, metrics
+          assert len(result["trades"]) == metrics["trades"]
+
+          result_hash = hashlib.sha256(result_path.read_bytes()).hexdigest()
+          trades_hash = hashlib.sha256(trades_path.read_bytes()).hexdigest()
+
+          manifest = {
+            "activation_contract_version": "2.0",
+            "status": "REAL_DATA_BACKTEST_ACTIVATED",
+            "scientific_claim": "FROZEN_BASELINE_ONLY",
+            "result_sha256": result_hash,
+            "trades_sha256": trades_hash,
+            "data_hashes": data["hashes"],
+            "github_sha": "${{ github.sha }}",
+            "github_run_id": "${{ github.run_id }}"
+          }
+          Path("results/ACTIVATION_MANIFEST.json").write_text(
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+          )
+          print(json.dumps(manifest, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload disposable real-data activation artifact
         uses: actions/upload-artifact@v4
         with:
-          name: btc-volume-delta-result
+          name: chatgpt-real-data-backtest-activation
           path: results/
           if-no-files-found: error
+          retention-days: 2
+
+      - name: Print activation result
+        run: cat results/ACTIVATION_MANIFEST.json
