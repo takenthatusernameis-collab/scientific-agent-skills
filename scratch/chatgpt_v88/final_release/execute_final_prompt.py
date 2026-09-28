@@ -73,6 +73,52 @@ decision = {
 
 subprocess.run(["python", str(REL / "run_synthetic_v1.py")], check=True)
 
+import hashlib
+
+def file_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+first_hashes = {
+    name: file_hash(REL / name)
+    for name in [
+        "VALIDATION_SELECTION.json",
+        "VALIDATION_PRIMARY.json",
+        "HOLDOUT_PRIMARY.json",
+        "FINAL_DECISION.json",
+    ]
+}
+
+subprocess.run(["python", str(REL / "run_synthetic_v1.py")], check=True)
+
+second_hashes = {
+    name: file_hash(REL / name)
+    for name in first_hashes
+}
+
+reconstruction_exact = first_hashes == second_hashes
+
+(REL / "RECONSTRUCTION.json").write_text(
+    json.dumps(
+        {
+            "validation_exact_match": first_hashes["VALIDATION_PRIMARY.json"] == second_hashes["VALIDATION_PRIMARY.json"],
+            "holdout_exact_match": first_hashes["HOLDOUT_PRIMARY.json"] == second_hashes["HOLDOUT_PRIMARY.json"],
+            "selection_exact_match": first_hashes["VALIDATION_SELECTION.json"] == second_hashes["VALIDATION_SELECTION.json"],
+            "decision_exact_match": first_hashes["FINAL_DECISION.json"] == second_hashes["FINAL_DECISION.json"],
+            "fresh_process": True,
+            "overall_exact_match": reconstruction_exact,
+        },
+        indent=2,
+    ) + "\n",
+    encoding="utf-8",
+)
+
+decision = json.loads((REL / "DECISION.json").read_text(encoding="utf-8"))
+decision["synthetic_execution_started"] = True
+decision["synthetic_execution_completed"] = True
+decision["fresh_process_reconstruction"] = reconstruction_exact
+decision["status"] = "SYNTHETIC_QUALIFICATION_COMPLETED"
+(REL / "DECISION.json").write_text(json.dumps(decision, indent=2) + "\n", encoding="utf-8")
+
 final = {
     "project_id": "V88_EMPIRICAL",
     "prompt_version": "1.2.0",
@@ -85,7 +131,7 @@ final = {
     "vectorbt_reason": "No scientifically valid executable portfolio mapping was available without inventing a material V88 definition.",
     "frozen_statistical_spec_hash": contract["statistical_inference_spec_hash"],
     "frozen_bootstrap_seed_spec_hash": contract["bootstrap_seed_spec_hash"],
-    "fresh_process_reconstruction_expected": True,
+    "fresh_process_reconstruction": reconstruction_exact,
     "cleanup_safe": True,
     "terminal_reason": "Final v1.2.0 prompt executed its autonomous recovery decision tree and correctly selected the technical synthetic qualification lane because the empirical recovery ledger remains incomplete."
 }
