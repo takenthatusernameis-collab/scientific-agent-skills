@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 import yaml
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 REL = ROOT / "scratch/chatgpt_v88/final_release"
 PROMPT = REL / "V88_MASTER_PROMPT.yaml"
 CONTRACT = REL / "V88_SCIENTIFIC_CONTRACT.yaml"
