@@ -1,0 +1,53 @@
+name: ChatGPT BTC Volume Delta V2 Ephemeral
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chatgpt-btc-volume-delta-v2-${{ github.event.pull_request.head.ref }}
+  cancel-in-progress: true
+
+jobs:
+  optimize:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'chatgpt/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run controlled OOS optimization
+        run: |
+          mkdir -p results
+          python scratch/chatgpt_btc_volume_delta/optimize.py \
+            --start 2024-06-01T00:00:00Z \
+            --train-end 2025-12-01T00:00:00Z \
+            --end 2026-09-20T00:00:00Z \
+            --fee-bps 5 \
+            --slippage-bps 2 \
+            --stress-fee-bps 8 \
+            --stress-slippage-bps 4 \
+            --output results/btc_volume_delta_v2_result.json
+
+      - name: Upload research artifacts (1-day retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-volume-delta-v2-result
+          path: results/
+          if-no-files-found: error
+          retention-days: 1
