@@ -47,7 +47,7 @@ required = [
     "V77 validation/economic gates",
     "V77 holdout evidence completeness",
     "V87 candidate selection/tie-break",
-    "candidate-family spec/hash",
+    "candidate-family specification/hash",
     "validation/holdout partition hash",
     "data manifest root hash",
     "final date-level candidate/economic observations",
