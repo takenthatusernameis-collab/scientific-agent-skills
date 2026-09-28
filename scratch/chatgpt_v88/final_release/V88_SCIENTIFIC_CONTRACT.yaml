@@ -1,0 +1,28 @@
+version: "1.0.0"
+project_id: "V88_EMPIRICAL"
+target_version: "V88 Version-1"
+statistical_inference_spec_hash: "a429a7bbfd931043a0d78db9ed9f05058300d1d393b5947ff257b46c3ee9152a"
+bootstrap_seed_spec_hash: "be752350cb2ad191ba61a1f75350ff240ff4f0246938c4f2f5460cd744f235c2"
+primary_unit: "DECISION_DATE"
+bootstrap:
+  block_length: 21
+  replications: 100000
+  calendar: "fixed_non_cyclic"
+  null_centering: "observed_mean"
+  p_value_correction: "+1"
+selection:
+  K: "floor(0.20*N), K>=5"
+  ties: "deterministic"
+required_inherited_items:
+  - "V76 formulas"
+  - "V77 validation/economic gates"
+  - "V77 holdout evidence completeness"
+  - "V87 candidate selection/tie-break"
+  - "candidate-family specification/hash"
+  - "validation/holdout partition hash"
+  - "data manifest root hash"
+  - "final date-level candidate/economic observations"
+scientific_terminals:
+  - "CONFIRMATORY_FAIL"
+  - "HOLDOUT_INCONCLUSIVE"
+empirical_rule: "No synthetic input may be used to support an empirical claim."
