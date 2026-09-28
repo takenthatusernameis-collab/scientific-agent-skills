@@ -33,7 +33,15 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 
 
-API = "https://api.binance.com/api/v3/klines"
+API_CANDIDATES = [
+    "https://data-api.binance.vision/api/v3/klines",
+    "https://api1.binance.com/api/v3/klines",
+    "https://api2.binance.com/api/v3/klines",
+    "https://api3.binance.com/api/v3/klines",
+    "https://api4.binance.com/api/v3/klines",
+    "https://api-gcp.binance.com/api/v3/klines",
+    "https://api.binance.com/api/v3/klines",
+]
 ALTCOINS = [
     "JTOUSDT",
     "PYTHUSDT",
@@ -93,8 +101,17 @@ def fetch_klines(symbol: str, start_ms: int, end_ms: int, interval: str = "1h") 
             "endTime": end_ms,
             "limit": 1000,
         }
-        url = API + "?" + urllib.parse.urlencode(params)
-        payload = get_json(url)
+        endpoint_errors: list[str] = []
+        payload = None
+        for base in API_CANDIDATES:
+            url = base + "?" + urllib.parse.urlencode(params)
+            try:
+                payload = get_json(url, retries=1)
+                break
+            except Exception as exc:
+                endpoint_errors.append(f"{base}: {exc}")
+        if payload is None:
+            raise RuntimeError(f"{symbol}: all Binance public market-data endpoints failed; " + " | ".join(endpoint_errors))
         if not isinstance(payload, list):
             raise RuntimeError(f"{symbol}: unexpected API response")
         if not payload:
@@ -242,7 +259,8 @@ def run(
         raise RuntimeError(f"Fewer than 4 altcoins were usable: {usable_alts}; failures={failures}")
 
     btc = {b.ts: b for b in data["BTCUSDT"]}
-    common_ts = sorted(set(btc).intersection(*(set({b.ts for b in data[s]}) for s in usable_alts)))
+    alt_by_ts = {s: {b.ts: b for b in data[s]} for s in usable_alts}
+    common_ts = sorted(set(btc).intersection(*(set(alt_by_ts[s]) for s in usable_alts)))
     if len(common_ts) < lookback + hold_bars + 20:
         raise RuntimeError("Insufficient common timestamps after alignment")
 
@@ -270,9 +288,8 @@ def run(
 
         per_asset: list[float] = []
         for sym in usable_alts:
-            by_ts = {b.ts: b for b in data[sym]}
-            entry = by_ts[entry_ts]
-            exit_bar = by_ts[exit_ts]
+            entry = alt_by_ts[sym][entry_ts]
+            exit_bar = alt_by_ts[sym][exit_ts]
             gross = exit_bar.close / entry.open - 1.0
             per_asset.append(side * gross - round_trip)
 
@@ -294,7 +311,7 @@ def run(
             "name": "BTC volume-delta directional alt-basket baseline",
             "execution_mode": "GitHub Actions public runner",
             "parquet_dependency": False,
-            "data_source": "Binance public spot kline REST API",
+            "data_source": "Binance public spot kline REST API with endpoint fallback ladder",
             "interval": "1h",
             "start": start,
             "end": end,
