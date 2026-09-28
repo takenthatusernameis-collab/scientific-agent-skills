@@ -1,0 +1,17 @@
+{
+  "project_id": "V88_EMPIRICAL",
+  "enterprise_id": "V88_RESEARCH_ENTERPRISE_V1",
+  "enterprise_version": "1.1.0",
+  "prompt_version": "1.1.0",
+  "prompt_source_repository": "takenthatusernameis-collab/Quantitative-Laboratory",
+  "prompt_source_ref": "research/v88-enterprise-guardrails-20260929",
+  "prompt_source_path": "enterprise/v88/V88_MASTER_PROMPT.yaml",
+  "expected_prompt_git_blob_sha": "1f37d62dce31c2a55b49e93d8883227797533047",
+  "canary_only": true,
+  "empirical_result_claimed": false,
+  "synthetic_empirical_substitution": false,
+  "max_routine_iterations": 13,
+  "minimum_material_improvement": 0.15,
+  "minimum_net_value": 0.10,
+  "consecutive_low_value_limit": 2
+}
