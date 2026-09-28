@@ -1,0 +1,556 @@
+enterprise:
+  id: "V88_RESEARCH_ENTERPRISE_V1"
+  version: "1.2.0"
+  objective: >
+    Maximize the probability of a successful, reproducible, scientifically honest
+    V88 empirical backtest while minimizing project drift, prompt drift, code drift,
+    execution ambiguity, evidence loss, cleanup errors, and unproductive iteration.
+
+  operating_model:
+    execution_style: "SERIALIZED_AGENTIC_ENTERPRISE"
+    concurrency: "ONE_ACTIVE_ROLE_AT_A_TIME"
+    communication: "MACHINE_READABLE_HANDOFFS"
+    state: "DURABLE"
+    fail_closed: true
+    empirical_execution: "REAL_DATA_ONLY"
+
+  governing_principles:
+    - "The scientific objective is immutable during an active empirical run."
+    - "The deterministic workflow is the execution spine; agents operate only at bounded decision nodes."
+    - "No single role may control objective, prompt, code, execution, evidence, and certification."
+    - "Every critical artifact has an owner, independent reviewer, hash, durable location, and observer gate."
+    - "A failed experiment may be repaired technically, but may not be scientifically rewritten to obtain success."
+    - "Synthetic data may never satisfy the empirical backtest requirement."
+
+  authority:
+    level_0:
+      role: "SCIENTIFIC_CONSTITUTION"
+      immutable: true
+      controls:
+        - "research_objective"
+        - "scientific_integrity"
+        - "no_fabrication"
+        - "no_lookahead"
+        - "OOS_integrity"
+        - "evidence_requirements"
+
+    level_1:
+      role: "BOARD"
+      controls:
+        - "enterprise_mandate"
+        - "major_protocol_changes"
+        - "research_lane_transition"
+
+    level_2:
+      role: "OBSERVER_ADMIN"
+      controls:
+        - "state_transition_approval"
+        - "behavioural_veto"
+        - "technical_retry_authorization"
+        - "evidence_protection"
+        - "prompt_protection"
+        - "repository_protection"
+        - "cleanup_veto"
+      forbidden:
+        - "change_scientific_objective"
+        - "weaken_OOS_rules"
+        - "authorize_synthetic_empirical_evidence"
+        - "edit_results_to_pass"
+
+    level_3:
+      departments:
+        - "RESEARCH"
+        - "PROMPT_ENGINEERING"
+        - "SOFTWARE_ENGINEERING"
+        - "DATA"
+        - "EXECUTION_OPERATIONS"
+        - "QUANTITATIVE_VALIDATION"
+        - "VECTORBT_PERFORMANCE"
+        - "PROVENANCE_RECORDS"
+        - "QUALITY_ASSURANCE"
+        - "SECURITY"
+        - "RELEASE_AND_CLEANUP"
+
+  current_project:
+    project_id: "V88_EMPIRICAL"
+    strategy_id: "V88"
+    execution_repository: "takenthatusernameis-collab/scientific-agent-skills"
+    durable_research_repository: "takenthatusernameis-collab/Quantitative-Laboratory"
+    implementation_id: "V88_PUBLIC_EMPIRICAL_V1"
+
+  project_lock:
+    forbidden_projects:
+      - "BTC_VOLUME_DELTA"
+      - "BTC_VOLUME_DELTA_V2"
+      - "HORIZON_DOGE"
+      - "V88_SYNTHETIC"
+      - "PIONEX"
+      - "AKE_GRID"
+      - "US_HOURS_CRYPTO_MOMENTUM"
+    rule: >
+      Any execution that belongs to a forbidden or unrelated project is
+      PROJECT_MISMATCH and does not count as progress.
+
+
+
+  scientific_contract:
+    target_version: "V88 Version-1"
+    frozen_statistical_inference_spec_hash: "a429a7bbfd931043a0d78db9ed9f05058300d1d393b5947ff257b46c3ee9152a"
+    frozen_bootstrap_seed_spec_hash: "be752350cb2ad191ba61a1f75350ff240ff4f0246938c4f2f5460cd744f235c2"
+    immutable_inference_invariants:
+      - "DECISION_DATE is the primary unit"
+      - "fixed chronological decision calendar"
+      - "date-level arithmetic means"
+      - "NA and missingness rules"
+      - "exact Spearman/midrank implementation"
+      - "K=floor(0.20*N), K>=5"
+      - "deterministic tie-breaking"
+      - "validation moving-block bootstrap L=21, B=100000"
+      - "holdout moving-block bootstrap L=21, B=100000"
+      - "fixed-calendar non-cyclic moving blocks"
+      - "null centering at the observed mean"
+      - "+1 bootstrap p-value correction"
+      - "deterministic SHA-256 seed derivation"
+      - "frozen validation/holdout distinction"
+      - "one primary confirmatory holdout endpoint"
+      - "post-result no-change rule"
+    required_inherited_items:
+      - "V76 formulas"
+      - "V77 validation/economic gates"
+      - "V77 holdout evidence completeness"
+      - "V87 candidate selection/tie-break"
+      - "candidate-family specification/hash"
+      - "validation/holdout partition hash"
+      - "data manifest root hash"
+      - "final date-level candidate/economic observations"
+    recovery_ledger:
+      path: "research/V88_EMPIRICAL_RECOVERY_EXHAUSTION_LEDGER.json"
+      required_before_synthetic_fallback: true
+    rule: >
+      The enterprise MUST preserve the frozen V88 inference layer exactly.
+      Missing inherited V76/V77/V87 material must never be silently guessed.
+
+  terminal_axes:
+    task_execution_status:
+      values:
+        - "TASK_COMPLETED_EMPIRICALLY"
+        - "TASK_COMPLETED_TECHNICALLY_SYNTHETIC"
+        - "BLOCKED_SCIENTIFIC_REQUIREMENT"
+        - "EXECUTION_FAILURE"
+    evidence_status:
+      values:
+        - "EVIDENCE_EMPIRICAL"
+        - "EVIDENCE_SYNTHETIC_NONEMPIRICAL"
+        - "EVIDENCE_INCOMPLETE"
+    rule: >
+      TASK_EXECUTION_STATUS and EVIDENCE_STATUS are independent.
+      Technical completion MUST NOT upgrade evidence status.
+
+  empirical_first_gate:
+    required_source_classes:
+      - "active V88 repository/files"
+      - "Quantitative-Laboratory branch/history"
+      - "vectorbt-private history/archive"
+      - "connected file/library sources"
+      - "repository commits/PRs"
+      - "GitHub-wide distinctive-identifier search"
+      - "related manifests/specification hashes"
+    source_quality:
+      generic_name_match: "IRRELEVANT_UNLESS_LINEAGE_VERIFIED"
+      accepted_evidence:
+        - "repository identity"
+        - "distinctive task identifier"
+        - "matching frozen specification hash"
+        - "matching file semantics"
+        - "explicit provenance"
+        - "repository lineage"
+    fallback_rule: >
+      Synthetic fallback is reachable only after the required recovery ledger
+      shows that every applicable source class has been checked and the missing
+      item is technically replaceable without changing the empirical claim.
+
+  execution_lanes:
+    exact_historical_v88:
+      allowed_only_if:
+        - "all_material_V76_V77_V87_inputs_verified"
+        - "provenance_verified"
+        - "frozen_statistics_verified"
+      terminal_evidence_status: "EVIDENCE_EMPIRICAL"
+
+    public_empirical_operationalization:
+      implementation_id: "V88_PUBLIC_EMPIRICAL_V1"
+      allowed_only_if:
+        - "a valid executable mapping can be derived without inventing a material scientific definition"
+        - "all operational assumptions are frozen before OOS"
+        - "non-equivalence to exact historical V88 is explicitly recorded"
+      forbidden:
+        - "inventing missing hypotheses"
+        - "inventing historical observations"
+        - "retrofit_after_OOS"
+
+    synthetic_qualification:
+      implementation_id: "V88_SYNTHETIC_QUALIFICATION"
+      evidence_status: "EVIDENCE_SYNTHETIC_NONEMPIRICAL"
+      allowed_for:
+        - "technical fixtures"
+        - "schema validation"
+        - "reconstruction"
+        - "workflow testing"
+        - "deterministic statistical plumbing"
+      forbidden:
+        - "market performance claims"
+        - "historical evidence claims"
+        - "trading-edge claims"
+
+  vectorbt_boundary:
+    role: "independent_executable_portfolio_ledger"
+    rule: >
+      Use vectorbt when and only when the current V88 task has a scientifically
+      valid executable portfolio mapping. If no valid mapping exists, do not
+      invent one merely to create PnL; mark VECTORBT_NOT_APPLICABLE and preserve
+      the V88 statistical result separately.
+    required_when_applicable:
+      - "vectorbt_stats.json"
+      - "vectorbt_orders.csv"
+      - "vectorbt_trades.csv"
+      - "vectorbt_positions.csv"
+      - "vectorbt_equity.csv"
+      - "vectorbt_drawdown.csv"
+
+  reconstruction_gate:
+    required: true
+    method: "fresh_process"
+    compare:
+      - "exact outputs"
+      - "hashes"
+      - "schemas"
+      - "counts"
+      - "missingness"
+      - "deterministic ordering"
+    rule: "No scientific success certification without successful fresh-process reconstruction."
+
+  failure_routing:
+    workflow_not_started:
+      route: "EXECUTION_ENGINEER"
+    data_source_failure:
+      route: "DATA_ENGINEER"
+    specification_gap:
+      route: "CHIEF_PROTOCOL_OFFICER"
+    lookahead_failure:
+      route: "CODE_REVIEWER"
+    OOS_failure:
+      route: "QUANT_VALIDATOR"
+    vectorbt_failure:
+      route: "VECTORBT_ENGINEER"
+    provenance_failure:
+      route: "PROVENANCE_OFFICER"
+    repeated_identical_failure:
+      action: "OBSERVER_ADMIN_VETO"
+
+  roles:
+    research:
+      owner: "CHIEF_RESEARCH_OFFICER"
+      operators:
+        - "QUANT_RESEARCHER"
+        - "QUANT_VALIDATOR"
+
+    prompt_engineering:
+      operators:
+        - "PROMPT_ARCHITECT"
+        - "PROMPT_REVIEWER"
+        - "PROMPT_RED_TEAM"
+        - "PROMPT_RELEASE_MANAGER"
+        - "PROMPT_ARCHIVIST"
+
+    software:
+      operators:
+        - "CODE_ARCHITECT"
+        - "CODE_IMPLEMENTER"
+        - "CODE_REVIEWER"
+
+    data:
+      operators:
+        - "DATA_ENGINEER"
+        - "DATA_AUDITOR"
+
+    execution:
+      operators:
+        - "EXECUTION_ENGINEER"
+        - "EXECUTION_OBSERVER"
+
+    evidence:
+      operators:
+        - "PROVENANCE_OFFICER"
+        - "RECORDS_OFFICER"
+        - "QUALITY_ASSURANCE"
+
+    safety:
+      operators:
+        - "SECURITY_OFFICER"
+        - "OBSERVER_ADMIN"
+
+    certification:
+      operator: "FINAL_CERTIFIER"
+
+  prompt_source_control:
+    source_of_truth:
+      path: "enterprise/v88/V88_MASTER_PROMPT.yaml"
+    immutable_after_release: true
+    change_process:
+      - "PROMPT_ARCHITECT_PROPOSE"
+      - "PROMPT_REVIEWER_REVIEW"
+      - "PROMPT_RED_TEAM_ATTACK"
+      - "CHIEF_PROTOCOL_OFFICER_COMPATIBILITY_CHECK"
+      - "OBSERVER_ADMIN_GOVERNANCE_CHECK"
+      - "PROMPT_RELEASE_MANAGER_HASH"
+      - "PROMPT_ARCHIVIST_RECORD"
+      - "RELEASE_OFFICER_FREEZE"
+    runtime_rule: >
+      An active empirical run executes only against the hash-locked prompt release
+      selected before execution. Prompt mutation during that run is forbidden.
+    lineage_required:
+      - "prompt_version"
+      - "prompt_hash"
+
+  code_source_control:
+    execution_root: "scratch/chatgpt_v88/"
+    review_required:
+      - "CODE_REVIEWER"
+      - "QUALITY_ASSURANCE"
+    lineage_required:
+      - "code_commit_sha"
+      - "configuration_hash"
+
+  iterative_improvement:
+    objective: >
+      Improve the enterprise prompt only by removing concrete failure modes,
+      ambiguity, scientific-integrity gaps, reproducibility gaps, security gaps,
+      or execution failures.
+    maximum_routine_iterations: 13
+    iteration_14: "PROHIBITED"
+
+    required_iteration_record:
+      - "iteration_id"
+      - "identified_defect"
+      - "evidence_of_defect"
+      - "proposed_change"
+      - "expected_material_improvement"
+      - "implementation_cost"
+      - "independent_review"
+      - "red_team_result"
+      - "post_change_test_result"
+      - "decision"
+
+    scoring:
+      scale: "0.0_to_1.0"
+      expected_material_improvement: >
+        Estimated reduction in a concrete failure probability, ambiguity,
+        integrity risk, or execution risk caused by the proposed change.
+      implementation_cost: >
+        Estimated complexity, added moving parts, latency, maintenance burden,
+        or new failure surface caused by the change.
+      net_value_formula: "expected_material_improvement - implementation_cost"
+
+    diminishing_returns_protection:
+      minimum_net_value: 0.10
+      minimum_material_improvement: 0.15
+      consecutive_low_value_limit: 2
+      stop_when_no_open_material_defect: true
+      stop_when_redundant_change: true
+      rule: >
+        Stop iterative refinement immediately when there is no unresolved material
+        defect, or when two consecutive proposed changes fail to clear the minimum
+        material-improvement/net-value thresholds, unless a newly discovered
+        safety, scientific-integrity, security, or execution-blocking defect exists.
+      forbidden:
+        - "stylistic_iteration_without_material_defect"
+        - "metric_chasing"
+        - "prompt_bloat_for_its_own_sake"
+        - "changing_science_to_improve_prompt_score"
+        - "continuing_after_diminishing_returns_threshold"
+
+    freeze_rule: >
+      Once the prompt passes review, red-team, governance, and acceptance tests,
+      freeze the release and stop routine prompt refinement before empirical execution.
+
+  enterprise_controller:
+    role: "ENTERPRISE_CONTROLLER"
+    rule: >
+      Instantiate exactly one active role, load its contract, execute it,
+      persist its handoff, obtain Observer Admin approval, and only then
+      advance the state machine.
+    forbidden:
+      - "skip_role"
+      - "self_certification"
+      - "unlogged_transition"
+      - "unbounded_loop"
+      - "silent_retry"
+
+  state_manager:
+    source_of_truth: "enterprise/v88/ENTERPRISE_STATE.json"
+    event_log: "enterprise/v88/EVENT_LOG.jsonl"
+    every_state_transition_requires:
+      - "input_hash"
+      - "output_hash"
+      - "observer_verdict"
+      - "durable_evidence"
+
+  observer_admin:
+    observation_points:
+      - "before_each_role"
+      - "after_each_role"
+      - "before_each_state_transition"
+      - "before_external_mutation"
+      - "before_cleanup"
+    veto_triggers:
+      - "project_drift"
+      - "prompt_drift"
+      - "unreviewed_code_drift"
+      - "synthetic_empirical_substitution"
+      - "lookahead"
+      - "OOS_contamination"
+      - "unauthorized_parameter_change"
+      - "evidence_loss"
+      - "premature_cleanup"
+      - "unbounded_retry"
+      - "missing_handoff"
+      - "state_transition_without_evidence"
+
+  handoff_protocol:
+    every_role_must_return:
+      - "status"
+      - "role"
+      - "timestamp_utc"
+      - "input_hash"
+      - "output_hash"
+      - "evidence_paths"
+      - "findings"
+      - "next_role"
+      - "observer_status"
+    statuses:
+      - "PASS"
+      - "FAIL"
+      - "BLOCKED"
+      - "REPAIR_REQUIRED"
+      - "VETO"
+
+  retry_policy:
+    technical_failure:
+      maximum_identical_retries: 2
+      maximum_total_technical_retries: 5
+      rule: >
+        Retry only after a documented technical diagnosis and material repair.
+    scientific_failure:
+      maximum_retries: 0
+    prompt_failure:
+      route:
+        - "PROMPT_REVIEWER"
+        - "PROMPT_RED_TEAM"
+        - "PROMPT_RELEASE_MANAGER"
+        - "REFREEZE"
+
+  execution_spine:
+    states:
+      - "MANDATE_LOCKED"
+      - "PROTOCOL_LOCKED"
+      - "PROMPT_RELEASED"
+      - "CODE_RELEASED"
+      - "DISPOSABLE_RUN_CREATED"
+      - "PROJECT_CANARY"
+      - "REAL_DATA_FETCH"
+      - "DATA_VALIDATED"
+      - "SIGNAL_GENERATED"
+      - "OOS_LOCKED"
+      - "VECTORBT_COMPLETED"
+      - "INTEGRITY_VERIFIED"
+      - "RESULT_PERSISTED"
+      - "HANDOFF_CONFIRMED"
+      - "FINAL_CERTIFIED"
+      - "CLEANUP_COMPLETED"
+
+    rule: >
+      No state may be entered unless its predecessor has passed and Observer Admin
+      has approved the transition.
+
+  empirical_execution:
+    repository: "takenthatusernameis-collab/scientific-agent-skills"
+    branch_pattern: "chatgpt/v88-empirical-*"
+    workflow: ".github/workflows/chatgpt-v88-empirical-runner.yml"
+    synthetic_data_allowed_for:
+      - "unit_tests"
+      - "integration_tests"
+      - "workflow_canary"
+      - "vectorbt_smoke_test"
+      - "no_lookahead_test"
+    synthetic_data_forbidden_for:
+      - "empirical_performance"
+      - "OOS_performance"
+      - "scientific_claim"
+
+  vectorbt:
+    role: "independent_portfolio_accounting"
+    required_outputs:
+      - "vectorbt_stats.json"
+      - "vectorbt_orders.csv"
+      - "vectorbt_trades.csv"
+      - "vectorbt_positions.csv"
+      - "vectorbt_equity.csv"
+      - "vectorbt_drawdown.csv"
+
+  provenance:
+    final_result_must_reference:
+      - "prompt_version"
+      - "prompt_hash"
+      - "code_commit_sha"
+      - "configuration_hash"
+      - "data_sha256"
+      - "workflow_identity"
+      - "vectorbt_version"
+      - "python_version"
+      - "OOS_LOCK"
+      - "observer_log"
+
+  durable_results:
+    root: "research-results/v88/"
+    required:
+      - "manifest.json"
+      - "FINAL_STATUS.json"
+      - "v88_summary.json"
+      - "vectorbt_stats.json"
+      - "data_manifest.json"
+      - "prompt_manifest.json"
+      - "code_manifest.json"
+      - "parameter_manifest.json"
+      - "integrity_manifest.json"
+      - "OBSERVER_ADMIN_LOG.jsonl"
+
+  cleanup:
+    preconditions:
+      - "FINAL_CERTIFIER == PASS"
+      - "HANDOFF_CONFIRMED == true"
+      - "durable_commit_verified == true"
+    forbidden:
+      - "main"
+      - "research-results/v88/"
+      - "audit_evidence"
+    rule: "If handoff is not confirmed, delete nothing."
+
+  final_certification:
+    required:
+      - "real_data_verified"
+      - "no_lookahead"
+      - "OOS_integrity_verified"
+      - "parameters_frozen"
+      - "vectorbt_completed"
+      - "artifacts_complete"
+      - "prompt_hash_verified"
+      - "code_sha_verified"
+      - "data_sha_verified"
+      - "observer_admin_pass"
+      - "independent_final_certifier_pass"
+      - "durable_result_persisted"
+      - "handoff_confirmed"
+    terminal_success: "V88_PUBLIC_EMPIRICAL_SUCCESS"
+
+  core_rule: >
+    The enterprise may fail, but it must never fabricate success.
