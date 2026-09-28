@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import io
 import hashlib
 import json
 import math
@@ -29,11 +30,13 @@ import statistics
 import time
 import urllib.parse
 import urllib.request
+import zipfile
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 
 
 API_CANDIDATES = [
+    "https://www.binance.com/api/v3/klines",
     "https://data-api.binance.vision/api/v3/klines",
     "https://api1.binance.com/api/v3/klines",
     "https://api2.binance.com/api/v3/klines",
@@ -69,7 +72,7 @@ class Bar:
         return 2.0 * self.taker_buy_quote_volume - self.quote_volume
 
 
-def get_json(url: str, retries: int = 4) -> object:
+def get_json(url: str, retries: int = 4, timeout: int = 30) -> object:
     last_exc: Exception | None = None
     for attempt in range(retries):
         try:
@@ -77,7 +80,7 @@ def get_json(url: str, retries: int = 4) -> object:
                 url,
                 headers={"User-Agent": "ChatGPT-BTC-Volume-Delta-Runner/1.0"},
             )
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except Exception as exc:
             last_exc = exc
@@ -87,6 +90,90 @@ def get_json(url: str, retries: int = 4) -> object:
 
 def ms(dt: str) -> int:
     return int(datetime.fromisoformat(dt.replace("Z", "+00:00")).timestamp() * 1000)
+
+
+def fetch_archived_monthly_klines(symbol: str, start_ms: int, end_ms: int, interval: str = "1h") -> tuple[list[Bar], str]:
+    """Fallback to Binance's official static monthly kline archives."""
+    start_dt = datetime.fromtimestamp(start_ms / 1000, tz=timezone.utc)
+    end_dt = datetime.fromtimestamp(end_ms / 1000, tz=timezone.utc)
+    cursor = start_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    end_month_start = end_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    rows: list[Bar] = []
+    digests: list[bytes] = []
+    month_errors: list[str] = []
+
+    while cursor < end_month_start:
+        month = cursor.strftime("%Y-%m")
+        filename = f"{symbol}-{interval}-{month}.zip"
+        url = f"https://data.binance.vision/data/spot/monthly/klines/{symbol}/{interval}/{filename}"
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "ChatGPT-BTC-Volume-Delta-Runner/1.0"},
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                blob = resp.read()
+            digests.append(blob)
+
+            with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+                members = [n for n in zf.namelist() if n.lower().endswith((".csv", ".csv.gz"))]
+                if not members:
+                    raise RuntimeError("archive contains no CSV")
+                name = members[0]
+                raw = zf.read(name)
+                if name.lower().endswith(".gz"):
+                    import gzip
+                    raw = gzip.decompress(raw)
+                text = raw.decode("utf-8")
+                for row in csv.reader(io.StringIO(text)):
+                    if not row or not row[0] or row[0].lower() == "open time":
+                        continue
+                    if len(row) < 11:
+                        continue
+                    ts = int(float(row[0]))
+                    if ts > 100_000_000_000_000:
+                        ts //= 1000
+                    if start_ms <= ts < end_ms:
+                        rows.append(
+                            Bar(
+                                ts=ts,
+                                open=float(row[1]),
+                                high=float(row[2]),
+                                low=float(row[3]),
+                                close=float(row[4]),
+                                quote_volume=float(row[7]),
+                                taker_buy_quote_volume=float(row[10]),
+                            )
+                        )
+        except Exception as exc:
+            month_errors.append(f"{month}: {exc}")
+
+        if cursor.month == 12:
+            cursor = cursor.replace(year=cursor.year + 1, month=1)
+        else:
+            cursor = cursor.replace(month=cursor.month + 1)
+
+    if not rows:
+        raise RuntimeError(
+            f"{symbol}: archived monthly fallback produced no rows; " + " | ".join(month_errors)
+        )
+
+    dedup = {b.ts: b for b in rows}
+    ordered = [dedup[k] for k in sorted(dedup)]
+    if len(ordered) < 200:
+        raise RuntimeError(f"{symbol}: archived fallback produced only {len(ordered)} hourly bars")
+
+    gaps = [
+        ordered[i].ts - ordered[i - 1].ts
+        for i in range(1, len(ordered))
+        if ordered[i].ts - ordered[i - 1].ts != 60 * 60 * 1000
+    ]
+    if gaps:
+        raise RuntimeError(f"{symbol}: archived fallback has {len(gaps)} hourly cadence gaps")
+
+    digest = hashlib.sha256(b"".join(digests)).hexdigest()
+    return ordered, digest
 
 
 def fetch_klines(symbol: str, start_ms: int, end_ms: int, interval: str = "1h") -> tuple[list[Bar], str]:
@@ -106,12 +193,12 @@ def fetch_klines(symbol: str, start_ms: int, end_ms: int, interval: str = "1h") 
         for base in API_CANDIDATES:
             url = base + "?" + urllib.parse.urlencode(params)
             try:
-                payload = get_json(url, retries=1)
+                payload = get_json(url, retries=1, timeout=8)
                 break
             except Exception as exc:
                 endpoint_errors.append(f"{base}: {exc}")
         if payload is None:
-            raise RuntimeError(f"{symbol}: all Binance public market-data endpoints failed; " + " | ".join(endpoint_errors))
+            return fetch_archived_monthly_klines(symbol, start_ms, end_ms, interval)
         if not isinstance(payload, list):
             raise RuntimeError(f"{symbol}: unexpected API response")
         if not payload:
@@ -311,7 +398,7 @@ def run(
             "name": "BTC volume-delta directional alt-basket baseline",
             "execution_mode": "GitHub Actions public runner",
             "parquet_dependency": False,
-            "data_source": "Binance public spot kline REST API with endpoint fallback ladder",
+            "data_source": "Binance public spot kline REST API with official static-archive fallback",
             "interval": "1h",
             "start": start,
             "end": end,
