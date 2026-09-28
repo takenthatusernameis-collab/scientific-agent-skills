@@ -18,11 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout disposable research branch
+      - name: Checkout only the disposable research payload
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            scratch/chatgpt_btc_volume_delta
+          sparse-checkout-cone-mode: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
