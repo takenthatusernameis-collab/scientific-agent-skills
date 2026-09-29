@@ -1,7 +1,7 @@
 import ast, hashlib, json, os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 MANIFEST = ROOT / "research-results/edge-search/V88_CYCLE3_H16_H19_EXECUTION_RELEASE_1_12_2.json"
 EXPECTED_VERSION = "1.12.2"
 EXPECTED_SHA = "01d55dbe7c790ae91c8424f535e5ac68d52b9dea"
