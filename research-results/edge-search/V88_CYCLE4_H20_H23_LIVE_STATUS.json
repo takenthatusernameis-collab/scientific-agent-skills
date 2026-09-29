@@ -1,10 +1,10 @@
 {
-  "workflow_run_id": 36545451078,
+  "workflow_run_id": 36545484851,
   "workflow_name": "V88 H20-H23 Fresh 2023 Breadth Wave",
   "status": "completed",
   "conclusion": "failure",
-  "head_sha": "c10fd53f3b4ccfb68a2a50fff1a0059ab99e3c3e",
-  "html_url": "https://github.com/takenthatusernameis-collab/scientific-agent-skills/actions/runs/36545451078",
+  "head_sha": "da37a41678270ac4754c9333d5c7f19bfd23f472",
+  "html_url": "https://github.com/takenthatusernameis-collab/scientific-agent-skills/actions/runs/36545484851",
   "prompt_version": "1.8.8",
   "scientific_results_present": true,
   "validation_results": [
@@ -39,7 +39,7 @@
         "MDD": -0.40530910535651077,
         "total_return": -0.31888631028861636
       },
-      "data_manifest_sha256": "21f2b189f5bdade3e15814118d2db6ac0c805cad51df14d6d6f863d2ad2cba10",
+      "data_manifest_sha256": "703ecd895684d9b2e6438cef8be842f9a0ab22b4e913580c54ed74407fbb4d96",
       "oos_seen": false,
       "holdout_seen": false,
       "new_idea": true
@@ -75,7 +75,7 @@
         "MDD": -0.7814539861230317,
         "total_return": -0.7862688771120754
       },
-      "data_manifest_sha256": "21f2b189f5bdade3e15814118d2db6ac0c805cad51df14d6d6f863d2ad2cba10",
+      "data_manifest_sha256": "703ecd895684d9b2e6438cef8be842f9a0ab22b4e913580c54ed74407fbb4d96",
       "oos_seen": false,
       "holdout_seen": false,
       "new_idea": true
@@ -111,7 +111,7 @@
         "MDD": -0.991572321097812,
         "total_return": -0.9918706941412349
       },
-      "data_manifest_sha256": "21f2b189f5bdade3e15814118d2db6ac0c805cad51df14d6d6f863d2ad2cba10",
+      "data_manifest_sha256": "703ecd895684d9b2e6438cef8be842f9a0ab22b4e913580c54ed74407fbb4d96",
       "oos_seen": false,
       "holdout_seen": false,
       "new_idea": true
@@ -147,7 +147,7 @@
         "MDD": -0.2818880261417199,
         "total_return": -0.2877379634793271
       },
-      "data_manifest_sha256": "21f2b189f5bdade3e15814118d2db6ac0c805cad51df14d6d6f863d2ad2cba10",
+      "data_manifest_sha256": "703ecd895684d9b2e6438cef8be842f9a0ab22b4e913580c54ed74407fbb4d96",
       "oos_seen": false,
       "holdout_seen": false,
       "new_idea": true
