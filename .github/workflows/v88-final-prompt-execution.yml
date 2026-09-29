@@ -1,4 +1,4 @@
-name: V88 Parallel Validation And Confirmatory H1
+name: V88 H2 BTC Volume Delta Research
 
 on:
   pull_request:
@@ -12,54 +12,35 @@ jobs:
   validation-screen:
     if: >-
       github.repository == 'takenthatusernameis-collab/scientific-agent-skills' &&
-      github.event.pull_request.head.ref == 'chatgpt/v88-parallel-validation-20260929'
+      github.event.pull_request.head.ref == 'chatgpt/v88-h2-volume-delta-20260929'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 3
       matrix:
-        include:
-          - beta: 60
-            h: 4
-          - beta: 90
-            h: 6
-          - beta: 120
-            h: 6
-          - beta: 90
-            h: 12
+        z: [0.75, 1.0, 1.25]
     steps:
-      - name: Checkout frozen v1.6.6 validation wave
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 1
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Install empirical dependencies
-        run: python -m pip install --disable-pip-version-check --no-input pyyaml numpy pandas vectorbt ccxt
-
-      - name: Apply deterministic archive parser patch
-        run: python scratch/chatgpt_v88/final_release/apply_h1_parser_patch.py
-
-      - name: Execute isolated validation configuration
+        run: python -m pip install --disable-pip-version-check --no-input numpy pandas vectorbt
+      - name: Execute isolated H2 validation configuration
         env:
-          H1_STAGE: VALIDATION
-          H1_BETA: ${{ matrix.beta }}
-          H1_H: ${{ matrix.h }}
-          CONFIG_ID: B${{ matrix.beta }}_H${{ matrix.h }}
-          EXPERIMENT_ID: V88-CYCLE2-H1-VAL-B${{ matrix.beta }}-H${{ matrix.h }}
-        run: python scratch/chatgpt_v88/final_release/run_h1_real.py
-
-      - name: Upload isolated validation result
+          H2_STAGE: VALIDATION
+          H2_Z: ${{ matrix.z }}
+          H2_H: "6"
+        run: python scratch/chatgpt_v88/final_release/run_h2_delta.py
+      - name: Upload H2 validation result
         uses: actions/upload-artifact@v4
         with:
-          name: v88-h1-validation-B${{ matrix.beta }}-H${{ matrix.h }}
-          path: scratch/chatgpt_v88/final_release/*B${{ matrix.beta }}_H${{ matrix.h }}*
+          name: v88-h2-validation-Z${{ matrix.z }}
+          path: scratch/chatgpt_v88/final_release/H2_RESULT_*_VALIDATION.json
           if-no-files-found: error
           retention-days: 1
 
@@ -67,77 +48,43 @@ jobs:
     needs: validation-screen
     if: >-
       github.repository == 'takenthatusernameis-collab/scientific-agent-skills' &&
-      github.event.pull_request.head.ref == 'chatgpt/v88-parallel-validation-20260929'
+      github.event.pull_request.head.ref == 'chatgpt/v88-h2-volume-delta-20260929'
     runs-on: ubuntu-latest
     outputs:
-      selected_beta: ${{ steps.select.outputs.beta }}
-      selected_h: ${{ steps.select.outputs.h }}
-      selected_config: ${{ steps.select.outputs.config }}
+      z: ${{ steps.select.outputs.z }}
     steps:
-      - name: Checkout frozen v1.6.6 validation wave
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 1
-
-      - name: Download sibling validation results
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          pattern: v88-h1-validation-*
+          pattern: v88-h2-validation-*
           path: validation-results
           merge-multiple: true
-
-      - name: Select one confirmatory configuration from validation only
-        id: select
+      - id: select
+        name: Lock one H2 configuration from validation only
         shell: bash
         run: |
           python - <<'PY'
-          import glob, json, os
-          files = sorted(glob.glob("validation-results/H1_RESULT_*_VALIDATION.json"))
-          rows = []
-          for fn in files:
-              with open(fn) as f:
-                  d = json.load(f)
-              p = d["primary"]
-              b = d["benchmark_equal_weight"]
-              rows.append({
-                  "fn": fn,
-                  "config": d["config_id"],
-                  "beta": d["beta_lookback"],
-                  "h": d["horizon_bars"],
-                  "sharpe": p["Sharpe"],
-                  "excess_return": p["total_return"] - b["total_return"],
-                  "events": d["oos_rebalance_events"]
-              })
-          eligible = [x for x in rows if x["events"] >= 100 and x["excess_return"] > 0]
+          import glob,json,os
+          rows=[]
+          for fn in glob.glob("validation-results/H2_RESULT_*_VALIDATION.json"):
+              d=json.load(open(fn)); p=d["primary"]
+              rows.append({"z":d["threshold_z"],"mean":p["mean"],"PF":p["PF"],"n":p["n"],"Sharpe":p["Sharpe"]})
+          eligible=[x for x in rows if x["n"]>=100 and x["mean"]>0 and x["PF"]>1]
           if not eligible:
-              raise SystemExit("NO_VALIDATION_ELIGIBLE_CONFIGURATION")
-          eligible.sort(key=lambda x:(x["sharpe"],x["excess_return"],x["config"]), reverse=True)
-          win = eligible[0]
-          lock = {
-              "stage": "CONFIRMATORY_CONFIGURATION_LOCK",
-              "selection_rule": "highest validation Sharpe among configs with >=100 validation rebalances and positive excess return vs equal-weight benchmark",
-              "selected_config": win["config"],
-              "selected_beta": win["beta"],
-              "selected_h": win["h"],
-              "eligible_configs": eligible,
-              "all_configs": rows,
-              "information_barrier": "No confirmatory OOS results existed when this lock was made."
-          }
-          os.makedirs("config-lock", exist_ok=True)
-          with open("config-lock/CONFIG_LOCK.json","w") as f:
-              json.dump(lock,f,indent=2)
-          with open(os.environ["GITHUB_OUTPUT"],"a") as out:
-              out.write(f"beta={win['beta']}\n")
-              out.write(f"h={win['h']}\n")
-              out.write(f"config={win['config']}\n")
-          PY
-
-      - name: Upload configuration lock
-        uses: actions/upload-artifact@v4
+              raise SystemExit("NO_H2_VALIDATION_ELIGIBLE_CONFIGURATION")
+          eligible.sort(key=lambda x:(x["mean"],x["PF"],x["Sharpe"]),reverse=True)
+          winner=eligible[0]
+          with open("H2_CONFIG_LOCK.json","w") as f:
+              json.dump({"selected_z":winner["z"],"selection_rule":"highest validation mean net return among configs with n>=100 and PF>1","rows":rows,"winner":winner,"oos_seen":False},f,indent=2)
+          with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+              f.write(f"z={winner['z']}\n")
+      - uses: actions/upload-artifact@v4
         with:
-          name: v88-h1-config-lock
-          path: config-lock/CONFIG_LOCK.json
+          name: v88-h2-config-lock
+          path: H2_CONFIG_LOCK.json
           if-no-files-found: error
           retention-days: 1
 
@@ -145,41 +92,30 @@ jobs:
     needs: select-config
     if: >-
       github.repository == 'takenthatusernameis-collab/scientific-agent-skills' &&
-      github.event.pull_request.head.ref == 'chatgpt/v88-parallel-validation-20260929'
+      github.event.pull_request.head.ref == 'chatgpt/v88-h2-volume-delta-20260929'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout frozen v1.6.6 confirmatory wave
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 1
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Install empirical dependencies
-        run: python -m pip install --disable-pip-version-check --no-input pyyaml numpy pandas vectorbt ccxt
-
-      - name: Apply deterministic archive parser patch
-        run: python scratch/chatgpt_v88/final_release/apply_h1_parser_patch.py
-
-      - name: Execute single locked primary OOS configuration
+        run: python -m pip install --disable-pip-version-check --no-input numpy pandas vectorbt
+      - name: Execute locked H2 OOS configuration
         env:
-          H1_STAGE: OOS
-          H1_BETA: ${{ needs.select-config.outputs.selected_beta }}
-          H1_H: ${{ needs.select-config.outputs.selected_h }}
-          CONFIG_ID: ${{ needs.select-config.outputs.selected_config }}
-          EXPERIMENT_ID: V88-CYCLE2-H1-CONFIRMATORY
-        run: python scratch/chatgpt_v88/final_release/run_h1_real.py
-
-      - name: Upload confirmatory evidence
+          H2_STAGE: OOS
+          H2_Z: ${{ needs.select-config.outputs.z }}
+          H2_H: "6"
+        run: python scratch/chatgpt_v88/final_release/run_h2_delta.py
+      - name: Upload H2 confirmatory evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v88-h1-confirmatory-oos
-          path: scratch/chatgpt_v88/final_release/
+          name: v88-h2-confirmatory-oos
+          path: scratch/chatgpt_v88/final_release/H2_RESULT_*_OOS.json
           if-no-files-found: error
           retention-days: 1
