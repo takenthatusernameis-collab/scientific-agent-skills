@@ -15,6 +15,7 @@
   ],
   "immutable_compute_revision": "3fdb587e9db363ee8406136a66a8cfd0b4f33dcd",
   "reason": "Execute only the previously blocked rerun reducer against exact frozen artifacts after repairing the final-summary path normalization.",
-  "trigger_revision": 2,
-  "requested_at": "2026-09-29T09:30:00+03:00"
+  "trigger_revision": 4,
+  "requested_at": "2026-09-29T09:30:00+03:00",
+  "retrigger_reason": "Control-plane reachability retry after prior pull_request reopen produced no workflow run; immutable scientific inputs unchanged."
 }
