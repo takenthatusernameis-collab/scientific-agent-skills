@@ -35,5 +35,5 @@ jobs:
           git config user.name "v88-1-13-canary"
           git config user.email "v88-1-13-canary@users.noreply.github.com"
           git add research-results/edge-search/V88_1_14_RECURSIVE_CANARY_SUMMARY.json research-results/edge-search/PROCESS_LEARNING_1_14.json
-          git commit -m "V88 1.14.0: persist schema-adaptive recursive canary evidence [skip ci]" || true
+          git commit -m "V88 1.14.0: fix evidence handoff filenames [skip ci]" || true
           git push origin HEAD:$GITHUB_REF_NAME
