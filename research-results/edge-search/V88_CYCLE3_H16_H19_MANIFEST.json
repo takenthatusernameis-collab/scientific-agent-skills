@@ -43,5 +43,8 @@
     "same_family_max_workers": 2
   },
   "oos_firewall": "VALIDATION_ONLY_UNTIL_LOCK",
-  "selection_rule": "highest fresh-validation Sharpe among n>=100, mean>0, PF>1"
+  "selection_rule": "highest fresh-validation Sharpe among n>=100, mean>0, PF>1",
+  "execution_status": "EXECUTION_REQUESTED",
+  "execution_trigger": "MAIN_MANIFEST_PUSH",
+  "trigger_reason": "Activate preregistered Cycle3 empirical research"
 }
