@@ -3,8 +3,6 @@ name: V88 H24-H27 Fresh 2023 Validation Wave
 on:
   push:
     branches: [main]
-    paths:
-      - "research-results/edge-search/V88_CYCLE5_H24_H27_MANIFEST.json"
 
 permissions:
   contents: write
