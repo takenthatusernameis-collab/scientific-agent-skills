@@ -21,10 +21,10 @@ def load():
     for p in sorted(DATA.glob("*.csv.gz")):
         hashes[p.name]=hashlib.sha256(p.read_bytes()).hexdigest()
         if p.name.startswith("funding_"):
-            d=pd.read_csv(p,parse_dates=["fundingTime"]); d["fundingTime"]=pd.to_datetime(d.fundingTime,utc=True)
+            d=pd.read_csv(p); d["fundingTime"]=pd.to_datetime(d["fundingTime"],utc=True,format="mixed")
             d["fundingRate"]=pd.to_numeric(d.fundingRate,errors="coerce"); funding[p.stem.removeprefix("funding_")]=d.dropna().set_index("fundingTime").sort_index()
         else:
-            d=pd.read_csv(p,parse_dates=["timestamp"]); d["timestamp"]=pd.to_datetime(d.timestamp,utc=True)
+            d=pd.read_csv(p); d["timestamp"]=pd.to_datetime(d["timestamp"],utc=True,format="mixed")
             for col in ["open","high","low","close","volume","taker_buy_base_volume"]: d[col]=pd.to_numeric(d[col],errors="coerce")
             frames[p.stem.removeprefix("perp_").removeprefix("spot_")]=d.dropna(subset=["timestamp","open","close"]).drop_duplicates("timestamp").sort_values("timestamp").set_index("timestamp")
             if p.name.startswith("spot_"): frames["spot_"+p.stem.removeprefix("spot_")]=frames.pop(p.stem.removeprefix("spot_"))
