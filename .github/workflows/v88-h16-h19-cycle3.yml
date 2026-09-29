@@ -1,7 +1,7 @@
 name: V88 H16-H19 Fresh 2023 Four-Class Wave
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
       - "research-results/edge-search/V88_CYCLE3_H16_H19_MANIFEST.json"
