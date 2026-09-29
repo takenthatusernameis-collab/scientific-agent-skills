@@ -1,0 +1,159 @@
+name: V88 H14 Repair + H15 New Idea
+
+on:
+  push:
+    branches: ["chatgpt/v88-h14-r1-h15-20260929"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  repair-and-new-idea:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - hypothesis: H14
+            mode: confirmable_repair
+          - hypothesis: H15
+            mode: exploratory_new_idea
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h3-data
+          path: scratch/chatgpt_v88/h11_h14_data
+          repository: ${{ github.repository }}
+          run-id: 36508270456
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
+      - name: Execute H14 repair or H15 new idea
+        env:
+          HYPOTHESIS: ${{ matrix.hypothesis }}
+        run: |
+          if [ "${HYPOTHESIS}" = "H14" ]; then
+            python scratch/chatgpt_v88/h11_h14/run_h11_h14.py
+          else
+            mkdir -p scratch/chatgpt_v88/h15_data
+            cp -R scratch/chatgpt_v88/h11_h14_data/* scratch/chatgpt_v88/h15_data/
+            python scratch/chatgpt_v88/h15/run_h15.py
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-h14-r1-h15-${{ matrix.hypothesis }}
+          path: |
+            scratch/chatgpt_v88/h11_h14_data/**/results/H14_VALIDATION.json
+            scratch/chatgpt_v88/h15_data/**/results/H15_EXPLORATORY.json
+          if-no-files-found: error
+          retention-days: 1
+
+  select-h11-h14:
+    needs: repair-and-new-idea
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h11-h14-validation-H11
+          path: prior/H11
+          repository: ${{ github.repository }}
+          run-id: 36510261255
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h11-h14-validation-H12
+          path: prior/H12
+          repository: ${{ github.repository }}
+          run-id: 36510261255
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h11-h14-validation-H13
+          path: prior/H13
+          repository: ${{ github.repository }}
+          run-id: 36510261255
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h14-r1-h15-H14
+          path: current/H14
+      - name: Lock H11-H14 using validation only
+        run: |
+          python - <<'PY'
+          import glob,json
+          files=glob.glob("prior/*/*.json")+glob.glob("current/H14/**/*.json",recursive=True)
+          rows=[]
+          for fn in files:
+              d=json.load(open(fn))
+              if d.get("hypothesis_id") in {"H11","H12","H13","H14"}:
+                  rows.append(d)
+          if len(rows)!=4: raise SystemExit(f"EXPECTED_4_GOT_{len(rows)}")
+          eligible=[r for r in rows if r["validation"]["n"]>=100 and r["validation"]["mean"]>0 and r["validation"]["PF"]>1]
+          summary={"all_validation":[{"hypothesis_id":r["hypothesis_id"],"strategy_class":r.get("strategy_class"),"validation":r["validation"]} for r in rows],"oos_seen":False}
+          if not eligible:
+              summary["family_status"]="H11_H14_NO_VALIDATION_ELIGIBLE_CONFIGURATION"
+              json.dump(summary,open("H11_H14_CONFIG_LOCK.json","w"),indent=2)
+              raise SystemExit("NO_H11_H14_VALIDATION_ELIGIBLE")
+          eligible.sort(key=lambda r:(r["validation"]["Sharpe"],r["validation"]["mean"],r["validation"]["PF"]),reverse=True)
+          w=eligible[0]; summary.update({"family_status":"CONFIRMATORY_HYPOTHESIS_LOCKED","selected_hypothesis":w["hypothesis_id"],"selected_strategy_class":w["strategy_class"],"selected_validation":w["validation"]})
+          json.dump(summary,open("H11_H14_CONFIG_LOCK.json","w"),indent=2)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v88-h11-h14-config-lock-r1
+          path: H11_H14_CONFIG_LOCK.json
+          if-no-files-found: error
+          retention-days: 1
+
+  confirmatory:
+    needs: select-h11-h14
+    if: ${{ success() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h3-data
+          path: scratch/chatgpt_v88/h11_h14_data
+          repository: ${{ github.repository }}
+          run-id: 36508270456
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h11-h14-config-lock-r1
+          path: .
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
+      - name: Run locked H11-H14 hypothesis on OOS and holdout
+        run: |
+          python - <<'PY'
+          import json,os,subprocess
+          cfg=json.load(open("H11_H14_CONFIG_LOCK.json"))
+          if cfg.get("family_status")!="CONFIRMATORY_HYPOTHESIS_LOCKED": raise SystemExit("NO_LOCK")
+          os.environ["HYPOTHESIS"]=cfg["selected_hypothesis"]
+          subprocess.run(["python","scratch/chatgpt_v88/h11_h14/run_h11_h14_confirm.py"],check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v88-h11-h14-confirmatory-r1
+          path: scratch/chatgpt_v88/h11_h14_data/**/results/H11_H14_CONFIRMATORY.json
+          if-no-files-found: error
+          retention-days: 1
