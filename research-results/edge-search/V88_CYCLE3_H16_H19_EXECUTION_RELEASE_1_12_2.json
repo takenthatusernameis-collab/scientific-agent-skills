@@ -1,0 +1,58 @@
+{
+  "schema_version": "v88-execution-release-v1",
+  "release_id": "V88-CYCLE3-H16-H19-V1.12.2",
+  "experiment_id": "V88-CYCLE3-H16-H19",
+  "prompt_control_release": {
+    "version": "1.12.2",
+    "blob_sha": "01d55dbe7c790ae91c8424f535e5ac68d52b9dea",
+    "private_repository": "takenthatusernameis-collab/vectorbt-private",
+    "private_branch": "research/v88-prompt-v1-12-2-lineage-preflight-20260929"
+  },
+  "scientific_registration": {
+    "manifest_path": "research-results/edge-search/V88_CYCLE3_H16_H19_MANIFEST.json",
+    "manifest_blob_sha": "73f975ef99139a781c8cd638b7712efb7445a9ca",
+    "registered_prompt_version": "1.8.2",
+    "matrix_frozen": true,
+    "reparameterization": false,
+    "hypothesis_ids": [
+      "H16",
+      "H17",
+      "H18",
+      "H19"
+    ]
+  },
+  "partitions": {
+    "validation": [
+      "2023-01-01",
+      "2023-03-31"
+    ],
+    "oos": [
+      "2023-04-01",
+      "2023-06-30"
+    ],
+    "holdout": [
+      "2023-07-01",
+      "2023-12-31"
+    ]
+  },
+  "scientific_rules": {
+    "guardian_min_classes": 3,
+    "max_same_family_workers": 2,
+    "workers": 4,
+    "oos_firewall": "VALIDATION_ONLY_UNTIL_LOCK",
+    "selection_rule": "highest fresh-validation Sharpe among n>=100, mean>0, PF>1"
+  },
+  "execution_closure": [
+    "scratch/chatgpt_v88/h16_h19/release_preflight.py",
+    "scratch/chatgpt_v88/h16_h19/acquire_2023.py",
+    "scratch/chatgpt_v88/h16_h19/run_h16_h19.py",
+    "scratch/chatgpt_v88/h16_h19/run_h16_h19_confirm.py"
+  ],
+  "execution_policy": {
+    "real_data_only": true,
+    "static_semantic_preflight_required": true,
+    "preflight_before_real_data": true,
+    "no_prompt_mutation_during_run": true,
+    "worker_prompt_metadata_must_match": true
+  }
+}
