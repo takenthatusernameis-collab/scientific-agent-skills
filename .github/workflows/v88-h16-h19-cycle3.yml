@@ -21,6 +21,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Deterministic V1.12.2 execution-closure preflight
+        env:
+          V88_PROMPT_VERSION: "1.12.2"
+          V88_PROMPT_SHA: "01d55dbe7c790ae91c8424f535e5ac68d52b9dea"
+        run: python scratch/chatgpt_v88/h16_h19/release_preflight.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-h16-h19-v1-12-2-preflight
+          path: research-results/edge-search/V88_CYCLE3_H16_H19_PREFLIGHT_1_12_2.json
+          if-no-files-found: error
+          retention-days: 7
       - run: python -m pip install --disable-pip-version-check --no-input pandas
       - name: Acquire fresh 2023 Binance 15m klines and funding
         run: python scratch/chatgpt_v88/h16_h19/acquire_2023.py
@@ -56,6 +67,8 @@ jobs:
       - name: Execute new idea from distinct strategy class
         env:
           HYPOTHESIS: ${{ matrix.hypothesis }}
+          V88_PROMPT_VERSION: "1.12.2"
+          V88_PROMPT_SHA: "01d55dbe7c790ae91c8424f535e5ac68d52b9dea"
         run: python scratch/chatgpt_v88/h16_h19/run_h16_h19.py
       - uses: actions/upload-artifact@v4
         with:
@@ -80,6 +93,8 @@ jobs:
           files=sorted(glob.glob("validation-results/**/H*_VALIDATION.json",recursive=True))
           rows=[json.load(open(fn)) for fn in files]
           if len(rows)!=4: raise SystemExit(f"EXPECTED_4_GOT_{len(rows)}")
+          if any(r.get("prompt_version")!="1.12.2" or r.get("prompt_sha")!="01d55dbe7c790ae91c8424f535e5ac68d52b9dea" for r in rows):
+              raise SystemExit("PROMPT_RELEASE_LINEAGE_MISMATCH")
           if len({r["strategy_class"] for r in rows})<3: raise SystemExit("GUARDIAN_CLASS_DIVERSITY_FAILURE")
           eligible=[r for r in rows if r["validation"]["n"]>=100 and r["validation"]["mean"]>0 and r["validation"]["PF"]>1]
           summary={"all_validation":[{"hypothesis_id":r["hypothesis_id"],"strategy_class":r["strategy_class"],"validation":r["validation"]} for r in rows],"classes":sorted({r["strategy_class"] for r in rows}),"oos_seen":False}
@@ -122,6 +137,9 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
       - name: Run locked OOS and independent holdout
+        env:
+          V88_PROMPT_VERSION: "1.12.2"
+          V88_PROMPT_SHA: "01d55dbe7c790ae91c8424f535e5ac68d52b9dea"
         run: |
           python - <<'PY'
           import json, os, subprocess
