@@ -1,0 +1,369 @@
+name: V88 1.17.0 Deep Real-Data Edge Wave
+on:
+  push:
+    branches:
+      - chatgpt/v88-1-17-0-deep-edge-wave-20260929
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v88-1-17-deep-edge-wave
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-deep-edge-117.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - name: Compile preflight
+        run: python -m compileall -q scratch/chatgpt_v88/deep_edge_117
+      - name: Acquire preregistered real data and generate 4096-candidate matrix
+        run: python scratch/chatgpt_v88/deep_edge_117/deep_prepare.py
+      - name: Materialize immutable feature bundle
+        run: python scratch/chatgpt_v88/deep_edge_117/deep_features.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-inputs
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-features
+          path: scratch/chatgpt_v88/deep_edge_117/features
+          retention-days: 7
+          if-no-files-found: error
+
+  stage1:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        shard_id: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-deep-edge-117.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-inputs
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-features
+          path: scratch/chatgpt_v88/deep_edge_117/features
+      - run: python scratch/chatgpt_v88/deep_edge_117/stage1_worker.py
+        env:
+          SHARD_ID: ${{ matrix.shard_id }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: v88-1-17-stage1-${{ matrix.shard_id }}
+          path: scratch/chatgpt_v88/deep_edge_117/stage1/shard_${{ matrix.shard_id }}.json
+          retention-days: 5
+          if-no-files-found: error
+
+  stage1_reduce:
+    needs: stage1
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-inputs
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-1-17-stage1-*
+          path: scratch/chatgpt_v88/deep_edge_117/stage1
+      - run: python scratch/chatgpt_v88/deep_edge_117/stage1_reduce.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-freeze1
+          path: scratch/chatgpt_v88/deep_edge_117/freeze_stage1.json
+          retention-days: 7
+          if-no-files-found: error
+
+  robustness:
+    needs: stage1_reduce
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard_id: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-deep-edge-117.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-features
+          path: scratch/chatgpt_v88/deep_edge_117/features
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-inputs
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-freeze1
+          path: scratch/chatgpt_v88/deep_edge_117
+      - run: python scratch/chatgpt_v88/deep_edge_117/robustness_worker.py
+        env:
+          SHARD_ID: ${{ matrix.shard_id }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: v88-1-17-robustness-${{ matrix.shard_id }}
+          path: scratch/chatgpt_v88/deep_edge_117/robustness/shard_${{ matrix.shard_id }}.json
+          retention-days: 5
+          if-no-files-found: error
+
+  robustness_reduce:
+    needs: robustness
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-1-17-robustness-*
+          path: scratch/chatgpt_v88/deep_edge_117/robustness
+      - run: python scratch/chatgpt_v88/deep_edge_117/robustness_reduce.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-freeze2
+          path: scratch/chatgpt_v88/deep_edge_117/freeze_stage2.json
+          retention-days: 7
+          if-no-files-found: error
+
+  oos:
+    needs: robustness_reduce
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard_id: [0,1,2,3,4,5,6,7]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-deep-edge-117.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-features
+          path: scratch/chatgpt_v88/deep_edge_117/features
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-freeze2
+          path: scratch/chatgpt_v88/deep_edge_117
+      - run: python scratch/chatgpt_v88/deep_edge_117/oos_worker.py
+        env:
+          SHARD_ID: ${{ matrix.shard_id }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: v88-1-17-oos-${{ matrix.shard_id }}
+          path: scratch/chatgpt_v88/deep_edge_117/oos/shard_${{ matrix.shard_id }}.json
+          retention-days: 5
+          if-no-files-found: error
+
+  oos_reduce:
+    needs: oos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-1-17-oos-*
+          path: scratch/chatgpt_v88/deep_edge_117/oos
+      - run: python scratch/chatgpt_v88/deep_edge_117/oos_reduce.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-freeze-oos
+          path: scratch/chatgpt_v88/deep_edge_117/freeze_oos.json
+          retention-days: 7
+          if-no-files-found: error
+
+  holdout:
+    needs: oos_reduce
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard_id: [0,1,2,3]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-deep-edge-117.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-features
+          path: scratch/chatgpt_v88/deep_edge_117/features
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-freeze-oos
+          path: scratch/chatgpt_v88/deep_edge_117
+      - run: python scratch/chatgpt_v88/deep_edge_117/holdout_worker.py
+        env:
+          SHARD_ID: ${{ matrix.shard_id }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: v88-1-17-holdout-${{ matrix.shard_id }}
+          path: scratch/chatgpt_v88/deep_edge_117/holdout/shard_${{ matrix.shard_id }}.json
+          retention-days: 5
+          if-no-files-found: error
+
+  final_reduce:
+    needs: holdout
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-freeze-oos
+          path: scratch/chatgpt_v88/deep_edge_117
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-1-17-holdout-*
+          path: scratch/chatgpt_v88/deep_edge_117/holdout
+      - run: python scratch/chatgpt_v88/deep_edge_117/final_reduce.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-final-summary
+          path: scratch/chatgpt_v88/deep_edge_117/FINAL_EDGE_WAVE_SUMMARY.json
+          retention-days: 7
+          if-no-files-found: error
+
+  rerun:
+    needs: final_reduce
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard_id: [0,1,2,3]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-deep-edge-117.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-features
+          path: scratch/chatgpt_v88/deep_edge_117/features
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-final-summary
+          path: scratch/chatgpt_v88/deep_edge_117
+      - run: python scratch/chatgpt_v88/deep_edge_117/independent_rerun.py
+        env:
+          SHARD_ID: ${{ matrix.shard_id }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: v88-1-17-rerun-${{ matrix.shard_id }}
+          path: scratch/chatgpt_v88/deep_edge_117/rerun/shard_${{ matrix.shard_id }}.json
+          retention-days: 5
+          if-no-files-found: error
+
+  rerun_reduce:
+    needs: rerun
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-final-summary
+          path: scratch/chatgpt_v88/deep_edge_117
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-1-17-rerun-*
+          path: scratch/chatgpt_v88/deep_edge_117/rerun
+      - run: python scratch/chatgpt_v88/deep_edge_117/rerun_reduce.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-edge-verification
+          path: scratch/chatgpt_v88/deep_edge_117/EDGE_VERIFICATION.json
+          retention-days: 7
+          if-no-files-found: error
+
