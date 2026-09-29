@@ -1,1 +1,8 @@
-{}
+{
+  "prompt_version": "1.6.5",
+  "experiment_id": "V88-CYCLE2-H1",
+  "selected_execution_lane": "REAL_DATA_H1",
+  "synthetic_execution_allowed": false,
+  "empirical_evidence_required": true,
+  "continuation_lock": "V88-HARD-CONTINUATION-20260929-CYCLE2"
+}
