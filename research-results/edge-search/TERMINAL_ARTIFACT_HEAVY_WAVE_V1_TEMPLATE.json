@@ -1,0 +1,97 @@
+{
+  "execution_coverage": {
+    "profile": "heavy-search-v1",
+    "expected_counts": {
+      "candidate_count": 4096,
+      "shard_count": 64,
+      "acquisition_unit_count": "<integer>",
+      "feature_count": "<integer>"
+    },
+    "observed_counts": {
+      "candidate_count": 4096,
+      "shard_count": 64,
+      "acquisition_unit_count": "<integer>",
+      "feature_count": "<integer>"
+    },
+    "candidate_set_path": "coverage/candidate_set.json",
+    "candidate_set_sha256": "<64-hex-sha256>",
+    "expected_acquisition_ledger_path": "coverage/expected_symbol_month.json",
+    "expected_acquisition_ledger_sha256": "<64-hex-sha256>",
+    "observed_acquisition_ledger_path": "coverage/acquisition.json",
+    "observed_acquisition_ledger_sha256": "<64-hex-sha256>",
+    "acquisition_units": [
+      {
+        "unit_id": "<SYMBOL>|<YYYY-MM>",
+        "symbol": "<SYMBOL>",
+        "month": "<YYYY-MM>",
+        "status": "SUCCESS",
+        "path": "acquisition/<symbol>-<month>.parquet",
+        "content_sha256": "<64-hex-sha256>",
+        "row_count": "<integer>",
+        "source": "<provider>",
+        "request_parameters": {}
+      }
+    ],
+    "feature_digests": [
+      {
+        "feature_id": "<stable-feature-id>",
+        "path": "features/<feature>.parquet",
+        "sha256": "<64-hex-sha256>",
+        "transform_code_path": "features/code/<transform>.py",
+        "transform_code_sha256": "<64-hex-sha256>",
+        "source_input_ids": [
+          "<input-id>"
+        ]
+      }
+    ],
+    "shards": [
+      {
+        "shard_id": "000",
+        "candidate_ledger_path": "shards/000.candidates.json",
+        "candidate_ledger_sha256": "<64-hex-sha256>",
+        "candidate_count": "<integer>",
+        "input_digest": "<64-hex-sha256>",
+        "result_path": "shards/000.result.json",
+        "result_sha256": "<64-hex-sha256>",
+        "status": "SUCCESS"
+      }
+    ],
+    "reducer": {
+      "reducer_metadata_path": "reducer/reducer_metadata.json",
+      "reducer_metadata_sha256": "<64-hex-sha256>",
+      "result_path": "reducer/FINAL_RESULT.json",
+      "result_sha256": "<64-hex-sha256>",
+      "reducer_code_path": "reducer/reducer.py",
+      "reducer_code_sha256": "<64-hex-sha256>",
+      "candidate_count_seen": 4096,
+      "shard_count_seen": 64,
+      "input_shards_digest": "<64-hex-sha256>"
+    }
+  },
+  "terminal_persistence_input": {
+    "schema_version": "terminal-persistence-input-v1",
+    "purpose": "private_control_plane_handoff",
+    "experiment_id": "<experiment-id>",
+    "terminal_status": "PROMISING_BUT_UNVERIFIED",
+    "terminal_manifest_path": "terminal_manifest.json",
+    "terminal_manifest_sha256": "<64-hex-sha256>",
+    "artifact_digest": "<64-hex-sha256>",
+    "worker_repository": "<owner/repository>",
+    "worker_commit_sha": "<40-hex-sha>",
+    "workflow_run_id": "<integer-or-null>",
+    "identity_fields": [
+      "experiment_id",
+      "terminal_status",
+      "terminal_manifest_sha256",
+      "artifact_digest"
+    ],
+    "private_records_required": [
+      "state",
+      "historian",
+      "process",
+      "event"
+    ],
+    "private_persistence_contract": "enterprise/v88/TERMINAL_RESEARCH_PERSISTENCE_CONTRACT.yaml",
+    "note": "Machine handoff metadata only; no private research conclusions. Excluded from artifact_digest to avoid circular hashing."
+  }
+}
