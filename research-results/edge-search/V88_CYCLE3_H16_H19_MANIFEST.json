@@ -44,7 +44,8 @@
   },
   "oos_firewall": "VALIDATION_ONLY_UNTIL_LOCK",
   "selection_rule": "highest fresh-validation Sharpe among n>=100, mean>0, PF>1",
-  "execution_status": "EXECUTION_REQUESTED",
-  "execution_trigger": "MAIN_MANIFEST_PUSH",
-  "trigger_reason": "Activate preregistered Cycle3 empirical research"
+  "execution_status": "EXECUTION_REQUESTED_PR",
+  "execution_trigger": "PULL_REQUEST_24",
+  "trigger_reason": "Activate preregistered Cycle3 empirical research",
+  "prereq_topology_version": "1.8.2"
 }
