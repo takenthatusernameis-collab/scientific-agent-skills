@@ -70,7 +70,7 @@
   },
   "oos_firewall": "VALIDATION_ONLY_UNTIL_LOCK",
   "selection_rule": "highest fresh-validation Sharpe among n>=100, mean>0, PF>1",
-  "execution_status": "REPAIR_TRIGGERED",
+  "execution_status": "PR_EXECUTION_REQUESTED",
   "execution_trigger": "PUSH_MAIN_SINGLE_TRIGGER",
   "trigger_reason": "Execute broadened V88 cycle under frozen v1.8.8 enterprise controls",
   "execution_route_id": "GITHUB_PUSH_MAIN_V88_CYCLE4_REPAIR3",
@@ -82,7 +82,7 @@
     "workflow_sha": "2172648fbfe86b120c8b14c4ddbef34ceab3708a"
   },
   "triggered_at_utc": "2026-09-29T02:27:22.898Z",
-  "repair_revision": 3,
+  "repair_revision": 4,
   "repair_reason": "All four validation workers reached the shared loader and failed on pandas mixed-format funding timestamps; parser repair only.",
   "universe_fix": {
     "symbols": [
