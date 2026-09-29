@@ -36,7 +36,7 @@ def metric(rows):
     return {"n":int(len(r)),"mean":float(r.mean()),"PF":float(wins/losses) if losses>0 else float("inf"),"Sharpe":float(np.sqrt(252)*r.mean()/sd) if sd>0 else None,"MDD":float((eq/np.maximum.accumulate(eq)-1).min()),"total_return":float(eq[-1]-1)}
 
 def h24():
-    m=metrics("BTCUSDT"); o=daily_open("BTCUSDT"); oi=pd.to_numeric(m["sum_open_interest_value"],errors="coerce").pct_change(); px=np.log(pd.to_numeric(o).pct_change()); rows=[]
+    m=metrics("BTCUSDT"); o=daily_open("BTCUSDT"); oi=pd.to_numeric(m["sum_open_interest_value"],errors="coerce").pct_change(); px=np.log1p(pd.to_numeric(o).pct_change()); rows=[]
     for day in m.index[(m.index>=VS)&(m.index<=VE)]:
         if np.isfinite(oi.get(day,np.nan)) and np.isfinite(px.get(day,np.nan)) and oi.loc[day]<=-0.10 and px.loc[day]<0:
             rr=ret_next(o,day)
@@ -53,7 +53,7 @@ def h25():
             if day in x.index and np.isfinite(x.loc[day]): vals.append((s,float(x.loc[day])))
         if len(vals)<6: continue
         vals.sort(key=lambda z:z[1]); k=max(1,len(vals)//4); longs=[s for s,_ in vals[:k]]; shorts=[s for s,_ in vals[-k:]]
-        lr=[ret_next(opens[s],day)+COST for s in longs if ret_next(opens[s],day) is not None]; sr=[ret_next(opens[s],day)+COST for s in shorts if ret_next(opens[s],day) is not None]
+        lr=[x+COST for s in longs for x in [ret_next(opens[s],day)] if x is not None]; sr=[x+COST for s in shorts for x in [ret_next(opens[s],day)] if x is not None]
         if lr and sr: rows.append(float(np.mean(lr)-np.mean(sr)-COST))
     return rows
 
@@ -77,7 +77,7 @@ def h26():
 def h27():
     rows=[]
     for s in ["BTCUSDT","ETHUSDT"]:
-        d=book(s); x=d.groupby("day").depth.sum().sort_index(); ch=x.pct_change(); o=daily_open(s); prior=np.log(pd.to_numeric(o).pct_change())
+        d=book(s); x=d.groupby("day").depth.sum().sort_index(); ch=x.pct_change(); o=daily_open(s); prior=np.log1p(pd.to_numeric(o).pct_change())
         for day in x.index[(x.index>=VS)&(x.index<=VE)]:
             if np.isfinite(ch.get(day,np.nan)) and ch.loc[day]<=-0.20 and np.isfinite(prior.get(day,np.nan)):
                 rr=ret_next(o,day)
