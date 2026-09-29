@@ -70,16 +70,35 @@
   },
   "oos_firewall": "VALIDATION_ONLY_UNTIL_LOCK",
   "selection_rule": "highest fresh-validation Sharpe among n>=100, mean>0, PF>1",
-  "execution_status": "LIVE_EXECUTION_TRIGGERED",
+  "execution_status": "REPAIR_TRIGGERED",
   "execution_trigger": "PUSH_MAIN_SINGLE_TRIGGER",
   "trigger_reason": "Execute broadened V88 cycle under frozen v1.8.8 enterprise controls",
   "execution_route_id": "GITHUB_PUSH_MAIN_V88_CYCLE4",
   "prompt_sha": "78ec88ac5192f00a723982b606177931964266f6",
   "code_refs": {
-    "acquisition_sha": "dbe773d6f3d599478018a2c8bb8b699d973e7eba",
-    "validation_sha": "052237dccc18f927a5d3cd323de74854d9c4c749",
+    "acquisition_sha": "544097fbb4ed3f7c9a1d32af4ea72e31e886bac0",
+    "validation_sha": "3a774cdbfa51a9ebf21833ea9961da17695a1a19",
     "confirmatory_sha": "869f080922080f65d516d0f8cfb975590414c544",
     "workflow_sha": "2172648fbfe86b120c8b14c4ddbef34ceab3708a"
   },
-  "triggered_at_utc": "2026-09-29T02:27:22.898Z"
+  "triggered_at_utc": "2026-09-29T02:27:22.898Z",
+  "repair_revision": 1,
+  "repair_reason": "Initial Cycle4 acquisition failed with HTTP 404 on a not-yet-listed 2023 monthly futures symbol archive before any scientific worker ran.",
+  "universe_fix": {
+    "symbols": [
+      "SOLUSDT",
+      "APTUSDT",
+      "OPUSDT",
+      "STXUSDT",
+      "INJUSDT",
+      "DOGEUSDT",
+      "LINKUSDT",
+      "MATICUSDT"
+    ],
+    "basis_symbols": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "rationale": "Use a fixed universe intended to have full-year 2023 futures coverage; missing monthly archives remain explicit route/data evidence rather than silent substitution."
+  }
 }
