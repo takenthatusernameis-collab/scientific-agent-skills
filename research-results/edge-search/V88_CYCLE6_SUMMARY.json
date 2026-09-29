@@ -1,0 +1,7 @@
+{
+  "experiment_id": "V88-CYCLE6-H16-H19-1H-FRESH-20260929",
+  "source_commit": "42737696d8c4dbaf557523af1a034ae9c9408a44",
+  "artifacts": [
+    "artifacts/v88-cycle6-data/DATA_MANIFEST.json"
+  ]
+}
