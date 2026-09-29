@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np,pandas as pd
 R=Path("scratch/chatgpt_v88/deep_edge_117");D=R/"data";OUT=R/"features";OUT.mkdir(exist_ok=True)
 syms=["BTCUSDT","DOGEUSDT","LINKUSDT","AVAXUSDT","NEARUSDT","FILUSDT","ATOMUSDT","UNIUSDT","AAVEUSDT","INJUSDT","OPUSDT","STXUSDT","ARBUSDT","APTUSDT","SUIUSDT"]
-oi_syms={"BTCUSDT","DOGEUSDT","LINKUSDT","AVAXUSDT","NEARUSDT","INJUSDT","OPUSDT","STXUSDT"}
+oi_syms={"BTCUSDT","DOGEUSDT","LINKUSDT","AVAXUSDT"}
 parts=[]
 for s in syms:
  d=pd.read_parquet(D/f"{s}_daily.parquet").set_index("timestamp").sort_index()
