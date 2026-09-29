@@ -28,14 +28,25 @@ def file_sha(p):
         for b in iter(lambda:f.read(1024*1024),b""): h.update(b)
     return h.hexdigest()
 
+def _scalar(v):
+    if pd.isna(v):
+        return None
+    if hasattr(v, "isoformat"):
+        return v.isoformat()
+    if isinstance(v, (np.integer, int)):
+        return int(v)
+    if isinstance(v, (np.floating, float)):
+        return float(v)
+    return str(v)
+
 def frame_hash(df):
     x=df.sort_index()
     cols=sorted(map(str,x.columns)); x=x[cols]
     payload={
-        "index":[v.isoformat() if hasattr(v,"isoformat") else str(v) for v in x.index],
+        "index":[_scalar(v) for v in x.index],
         "columns":cols,
         "dtypes":[str(x[c].dtype) for c in cols],
-        "values":{c:[None if pd.isna(v) else float(v) for v in x[c].tolist()] for c in cols}
+        "values":{c:[_scalar(v) for v in x[c].tolist()] for c in cols}
     }
     return hashlib.sha256(canonical(payload).encode()).hexdigest()
 
