@@ -52,3 +52,35 @@ This layer proves execution completeness and immutable handoff. It does not prov
 ## Notes ownership
 
 The public worker is a compute/evidence surface, not the private research notebook. It should emit immutable machine-readable terminal artifacts only. Durable narrative research notes, decisions, and agent handoffs belong in the private research repository/control plane after the artifact is independently reconciled.
+
+## Private-control-plane handoff
+
+Every terminalized heavy wave also emits:
+
+`terminal_persistence_input.json`
+
+This is a machine-only handoff descriptor. It carries the exact:
+
+- `experiment_id`
+- `terminal_status`
+- `terminal_manifest_sha256`
+- `artifact_digest`
+- worker repository/commit/run provenance
+
+and declares the four private records that must be created or reconciled:
+
+`state`, `historian`, `process`, and `event`.
+
+The sidecar is a projection of `terminal_manifest.json` and is deliberately excluded from the artifact digest to avoid circular hashing. It contains no private research conclusions.
+
+The private control plane can therefore consume a standard terminal bundle without experiment-specific field mapping:
+
+```text
+terminal_manifest.json
+terminal_persistence_input.json
+    -> private reconciliation
+       -> state + Historian + process + event
+       -> terminal persistence verifier
+```
+
+The public worker remains compute/evidence-only. It does not write the private records.
