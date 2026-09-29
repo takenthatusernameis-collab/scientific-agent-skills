@@ -15,7 +15,7 @@ COST_HARD=0.0042
 def mat(prefix,field):
  return pd.DataFrame({s:F[f"{s}|{field}"] for s in SYMS},index=F.index)
 
-CLOSE=mat("","close"); VOL=mat("","vol20"); OI=mat("","oi"); RET1=mat("","ret3") # overwritten per candidate
+CLOSE=mat("","close"); VOL=mat("","vol20"); OI=mat("","oi")
 
 def signal(spec):
  fam=spec["family"];L=int(spec["lookback"]);T=float(spec["threshold"])
