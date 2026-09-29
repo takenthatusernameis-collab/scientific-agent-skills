@@ -3,7 +3,7 @@
   "experiment_id":"V88-1-17-DEEP-REAL-DATA-EDGE-WAVE",
   "objective":"Search for robust positive systematic crypto-perpetual edge without weakening evidence standards.",
   "symbols":["BTCUSDT","DOGEUSDT","LINKUSDT","AVAXUSDT","NEARUSDT","FILUSDT","ATOMUSDT","UNIUSDT","AAVEUSDT","INJUSDT","OPUSDT","STXUSDT","ARBUSDT","APTUSDT","SUIUSDT"],
-  "OI_symbols":["BTCUSDT","DOGEUSDT","LINKUSDT","AVAXUSDT","NEARUSDT","INJUSDT","OPUSDT","STXUSDT"],
+  "OI_symbols":["BTCUSDT","DOGEUSDT","LINKUSDT","AVAXUSDT"],
   "validation":"2023-06-01_to_2024-12-31",
   "OOS":"2025-01-01_to_2025-12-31",
   "holdout":"2026-01-01_to_2026-09-20",
