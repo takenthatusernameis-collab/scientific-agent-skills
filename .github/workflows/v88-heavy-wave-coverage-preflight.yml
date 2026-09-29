@@ -1,0 +1,28 @@
+name: V88 Heavy Wave Coverage Preflight
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input pyyaml
+      - run: python scratch/chatgpt_v88/heavy_wave/validate_matrix.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-heavy-wave-coverage-preflight
+          path: research-results/edge-search/V88_HEAVY_WAVE_COVERAGE_PREFLIGHT_1_10_0.json
+      - name: Persist preflight
+        run: |
+          git config user.name "v88-heavy-wave"
+          git config user.email "v88-heavy-wave@users.noreply.github.com"
+          git add research-results/edge-search/V88_HEAVY_WAVE_COVERAGE_PREFLIGHT_1_10_0.json
+          git commit -m "V88: persist heavy-wave coverage preflight" || exit 0
+          git pull --rebase origin main
+          git push origin HEAD:main
