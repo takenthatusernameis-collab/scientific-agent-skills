@@ -2,6 +2,7 @@ import hashlib,json,os
 from pathlib import Path
 import pandas as pd
 from binance_vision import fetch_data
+from types import SimpleNamespace
 
 ROOT=Path("scratch/chatgpt_v88/deep_edge_117")
 RAW=ROOT/"raw"; DATA=ROOT/"data"; ROOT.mkdir(parents=True,exist_ok=True); RAW.mkdir(exist_ok=True); DATA.mkdir(exist_ok=True)
@@ -20,6 +21,11 @@ def cid(x): return hashlib.sha256(canonical(x).encode()).hexdigest()[:20]
 
 def fetch_one(sym,typ,interval=None):
     out=RAW/f"{sym}_{typ}{('_'+interval) if interval else ''}"
+    # Reuse an existing immutable source file when supplied by the runner's
+    # cache or a prior workflow artifact. Only missing/corrupt files are fetched.
+    if os.getenv("V88_REUSE_SOURCE_DATA","1") == "1" and out.is_file() and out.stat().st_size > 0:
+        d=pd.read_parquet(out)
+        return SimpleNamespace(data=d, output_path=str(out), failed=[], missing=[])
     r=fetch_data(ticker=sym,start_date=START,end_date=END,market="usdm",data_type=typ,interval=interval,
                  output_format="parquet",output_path=str(out),max_workers=8)
     if r.failed: raise RuntimeError(f"FAILED {sym} {typ}: {r.failed[:3]}")
