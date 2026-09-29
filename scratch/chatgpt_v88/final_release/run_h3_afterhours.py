@@ -137,7 +137,7 @@ def run_worker():
     val_days=[d for d in daily.index if START<=d<=VAL_END]
     oos_days=[d for d in daily.index if VAL_END<d<=OOS_END]
     hold_days=[d for d in daily.index if OOS_END<d<=END]
-    cfgs=[(t,nq,e,beta_win) for t in THRESHOLDS for nq in NQ for e in EXITS]
+    cfgs=[(beta_win,t,nq,e) for t in THRESHOLDS for nq in NQ for e in EXITS]
     cache={}
     for cfg in cfgs:
         vals=[]; keys=[]
@@ -154,9 +154,7 @@ def run_worker():
     scored.sort(key=lambda z:(z[0],z[1],z[2]),reverse=True)
     best_cfg=scored[0][3] if scored else cfgs[0]
     v=metrics([cache[(best_cfg,d)][1] for d in train_days if np.isfinite(cache[(best_cfg,d)][1])])
-    oos=[cache[(best_cfg,d)][1] for d in oos_days if np.isfinite(cache[(best_cfg,d)][1])]
-    hold=[cache[(best_cfg,d)][1] for d in hold_days if np.isfinite(cache[(best_cfg,d)][1])]
-    out={"beta_window":beta_win,"validation":v,"selected_config":{"shock_threshold":best_cfg[0],"n_quantiles":best_cfg[1],"exit":best_cfg[2],"beta_window":best_cfg[3]},"oos_preview":metrics(oos),"holdout_preview":metrics(hold)}
+    out={"beta_window":beta_win,"validation":v,"selected_config":{"shock_threshold":best_cfg[1],"n_quantiles":best_cfg[2],"exit":best_cfg[3],"beta_window":best_cfg[0]},"oos_seen":False,"holdout_seen":False}
     path=R/f"H3_VALIDATION_B{beta_win}.json"; path.write_text(json.dumps(out,indent=2,default=float)+"\n")
 
 if __name__=="__main__":
