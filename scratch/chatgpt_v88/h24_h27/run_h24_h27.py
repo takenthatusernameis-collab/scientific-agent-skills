@@ -3,6 +3,10 @@ from pathlib import Path
 import numpy as np,pandas as pd
 
 R=Path(__file__).resolve().parent; DATA=R/"data"
+PROMPT_VERSION=os.environ.get("V88_PROMPT_VERSION","1.9.6")
+PROMPT_SHA=os.environ.get("V88_PROMPT_SHA","8a8cb933efa45236916cc8a3989e097e0de3856b")
+CODE_SHA=os.environ.get("GITHUB_SHA","UNKNOWN")
+WORKFLOW_RUN_ID=os.environ.get("GITHUB_RUN_ID","UNKNOWN")
 VS=pd.Timestamp("2023-01-01",tz="UTC"); VE=pd.Timestamp("2023-03-31 23:59:59",tz="UTC"); COST=0.0021
 SYMS=["BTCUSDT","ETHUSDT","SOLUSDT","DOGEUSDT","INJUSDT","OPUSDT","STXUSDT","LINKUSDT"]
 META={
@@ -88,7 +92,7 @@ FUN={"H24":h24,"H25":h25,"H26":h26,"H27":h27}
 def main():
     h=os.environ["HYPOTHESIS"]; meta=META[h]
     try: rows=FUN[h]()
-    except RuntimeError as e: out={"experiment_id":"V88-CYCLE5-H24-H27","prompt_version":"1.9.5","hypothesis_id":h,"strategy_class":meta[0],"information_source_family":meta[1],"economic_mechanism":meta[2],"position_construction":meta[3],"data_domain":meta[4],"real_data":True,"future_data_hidden":True,"status":"BLOCKED_DATA_SCHEMA","error":str(e),"validation":None}
-    else: out={"experiment_id":"V88-CYCLE5-H24-H27","prompt_version":"1.9.5","hypothesis_id":h,"strategy_class":meta[0],"information_source_family":meta[1],"economic_mechanism":meta[2],"position_construction":meta[3],"data_domain":meta[4],"real_data":True,"future_data_hidden":True,"status":"VALIDATION_COMPLETE","validation":metric(rows),"cost_model":{"round_trip":COST},"data_manifest_sha256":hashlib.sha256((R/"DATA_MANIFEST.json").read_bytes()).hexdigest()}
+    except RuntimeError as e: out={"experiment_id":"V88-CYCLE5-H24-H27","prompt_version":PROMPT_VERSION,"hypothesis_id":h,"strategy_class":meta[0],"information_source_family":meta[1],"economic_mechanism":meta[2],"position_construction":meta[3],"data_domain":meta[4],"real_data":True,"future_data_hidden":True,"status":"BLOCKED_DATA_SCHEMA","prompt_sha":PROMPT_SHA,"code_sha":CODE_SHA,"workflow_run_id":WORKFLOW_RUN_ID,"evidence_stage":"VALIDATION","error":str(e),"validation":None}
+    else: out={"experiment_id":"V88-CYCLE5-H24-H27","prompt_version":"1.9.5","hypothesis_id":h,"strategy_class":meta[0],"information_source_family":meta[1],"economic_mechanism":meta[2],"position_construction":meta[3],"data_domain":meta[4],"real_data":True,"future_data_hidden":True,"status":"VALIDATION_COMPLETE","validation":metric(rows),"cost_model":{"round_trip":COST},"data_manifest_sha256":hashlib.sha256((R/"DATA_MANIFEST.json").read_bytes()).hexdigest(),"prompt_sha":PROMPT_SHA,"code_sha":CODE_SHA,"workflow_run_id":WORKFLOW_RUN_ID,"evidence_stage":"VALIDATION"}
     (DATA/"results").mkdir(parents=True,exist_ok=True); (DATA/"results"/f"{h}_VALIDATION.json").write_text(json.dumps(out,indent=2)+"\n"); print(json.dumps(out,indent=2))
 if __name__=="__main__": main()
