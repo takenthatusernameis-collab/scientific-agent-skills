@@ -21,7 +21,7 @@ Recommended final workflow step:
       --expected-acquisition-ledger coverage/expected_symbol_month.json \
       --feature-ledger coverage/features.json \
       --shard-ledger coverage/shards.json \
-      --reducer-result reducer/FINAL_RESULT.json \
+      --reducer-metadata reducer/reducer_metadata.json \
       --reducer-code reducer/reducer.py \
       --expected-candidate-count 4096 \
       --expected-shard-count 64 \
