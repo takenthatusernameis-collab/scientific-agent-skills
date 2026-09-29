@@ -67,5 +67,31 @@
       "shard_count_seen": 64,
       "input_shards_digest": "<64-hex-sha256>"
     }
+  },
+  "terminal_persistence_input": {
+    "schema_version": "terminal-persistence-input-v1",
+    "purpose": "private_control_plane_handoff",
+    "experiment_id": "<experiment-id>",
+    "terminal_status": "PROMISING_BUT_UNVERIFIED",
+    "terminal_manifest_path": "terminal_manifest.json",
+    "terminal_manifest_sha256": "<64-hex-sha256>",
+    "artifact_digest": "<64-hex-sha256>",
+    "worker_repository": "<owner/repository>",
+    "worker_commit_sha": "<40-hex-sha>",
+    "workflow_run_id": "<integer-or-null>",
+    "identity_fields": [
+      "experiment_id",
+      "terminal_status",
+      "terminal_manifest_sha256",
+      "artifact_digest"
+    ],
+    "private_records_required": [
+      "state",
+      "historian",
+      "process",
+      "event"
+    ],
+    "private_persistence_contract": "enterprise/v88/TERMINAL_RESEARCH_PERSISTENCE_CONTRACT.yaml",
+    "note": "Machine handoff metadata only; no private research conclusions. Excluded from artifact_digest to avoid circular hashing."
   }
 }
