@@ -1,0 +1,79 @@
+{
+  "historian_version": "1.9.4",
+  "generated_at_utc": "2026-09-29T06:06:00+03:00",
+  "selection_firewall": true,
+  "cohorts": [
+    {
+      "cohort_id": "V88-CYCLE4-H20-H23-VALIDATION-2023Q1",
+      "stage": "VALIDATION",
+      "partition": "2023-01-01_to_2023-03-31",
+      "provenance_filter": "ALL_RESULTS_VISIBLE; CERTIFICATION_GRADE_QUARANTINED_WHEN_DRIFTED",
+      "descriptive_ranking": [
+        "H20",
+        "H23",
+        "H22",
+        "H21"
+      ],
+      "notes": [
+        "H23 is INSUFFICIENT_SAMPLE n=13",
+        "All four worker artifacts carry stale embedded prompt_version 1.8.8 versus control-plane 1.9.1",
+        "No OOS/holdout was exposed"
+      ]
+    },
+    {
+      "cohort_id": "V88-CYCLE2-H9-H10-VALIDATION-2025Q4_2026Q1",
+      "stage": "VALIDATION",
+      "partition": "2025-10-01_to_2026-03-31",
+      "provenance_filter": "RECONCILED_EVIDENCE_FILE",
+      "descriptive_ranking": [
+        "H10",
+        "H9"
+      ]
+    },
+    {
+      "cohort_id": "V88-CYCLE2-H11-H14-VALIDATION-2026Q2",
+      "stage": "VALIDATION",
+      "partition": "2026-04-01_to_2026-05-31",
+      "provenance_filter": "RECONCILED_EVIDENCE_FILE",
+      "descriptive_ranking": [
+        "H13",
+        "H14",
+        "H11",
+        "H12"
+      ],
+      "notes": [
+        "H13 is INSUFFICIENT_SAMPLE n=29"
+      ]
+    },
+    {
+      "cohort_id": "V88-CYCLE2-H15-VALIDATION-2026-06_07",
+      "stage": "VALIDATION",
+      "partition": "2026-06-01_to_2026-07-31",
+      "provenance_filter": "RECONCILED_EVIDENCE_FILE",
+      "descriptive_ranking": [
+        "H15"
+      ],
+      "notes": [
+        "H15 is INSUFFICIENT_SAMPLE n=47"
+      ]
+    },
+    {
+      "cohort_id": "V88-CYCLE2-H1-OOS",
+      "stage": "OOS",
+      "partition": "2024-01-01_to_2025-09-30",
+      "provenance_filter": "RECONCILED_FROM_DURABLE_STATE",
+      "descriptive_ranking": [
+        "H1"
+      ],
+      "notes": [
+        "H1 failed OOS"
+      ]
+    }
+  ],
+  "global_rules": {
+    "no_cross_cohort_rank": true,
+    "no_ranking_based_selection": true,
+    "no_low_sample_promotion": true,
+    "technical_failures_unranked": true
+  }
+}
