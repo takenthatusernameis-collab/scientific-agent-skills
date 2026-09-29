@@ -6,7 +6,7 @@ R = Path(__file__).resolve().parent
 DATA = R / "h20_h23_data"
 START = pd.Timestamp("2023-01-01", tz="UTC")
 END = pd.Timestamp("2023-12-31 23:59:59", tz="UTC")
-PERP_SYMBOLS = ["SOLUSDT","APTUSDT","ARBUSDT","OPUSDT","SEIUSDT","SUIUSDT","STXUSDT","INJUSDT"]
+PERP_SYMBOLS = ["SOLUSDT","APTUSDT","OPUSDT","STXUSDT","INJUSDT","DOGEUSDT","LINKUSDT","MATICUSDT"]
 BASIS_SYMBOLS = ["BTCUSDT","ETHUSDT"]
 FUNDING_SYMBOLS = PERP_SYMBOLS
 FUT_BASE = "https://data.binance.vision/data/futures/um/monthly/klines"
@@ -20,11 +20,17 @@ def monthly_klines(base, symbol):
     frames=[]
     for m in pd.date_range(START.normalize(), END.normalize(), freq="MS"):
         url=f"{base}/{symbol}/15m/{symbol}-15m-{m.year}-{m.month:02d}.zip"
-        blob=download(url)
+        try:
+            blob=download(url)
+        except urllib.error.HTTPError as e:
+            if e.code==404:
+                print(f"SKIP_MISSING_ARCHIVE {url}")
+                continue
+            raise
         with zipfile.ZipFile(io.BytesIO(blob)) as z:
             names=[n for n in z.namelist() if n.endswith(".csv")]
             if not names:
-                raise RuntimeError(f"NO_CSV {base} {symbol} {m.date()}")
+                raise RuntimeError(f"NO_CSV {base} {sym} {m.date()}")
             df=pd.read_csv(z.open(names[0]), header=None)
         if str(df.iloc[0,0]).strip().lower() in {"open time","open_time"}:
             df=df.iloc[1:].reset_index(drop=True)
