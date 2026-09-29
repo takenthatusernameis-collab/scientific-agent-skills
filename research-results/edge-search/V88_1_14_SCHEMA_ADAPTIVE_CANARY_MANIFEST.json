@@ -1,0 +1,20 @@
+{
+  "prompt_version":"1.14.0",
+  "prompt_sha":"13bf568b1af894fbcb118090890eff466e7f1764",
+  "experiment_id":"V88-1-14-SCHEMA-ADAPTIVE-FRONTIER-CANARY",
+  "stage":"EXECUTION_CANARY",
+  "scientific_claim":false,
+  "real_data_required":true,
+  "period":"2023-01-01_to_2023-06-30",
+  "symbols":["BTCUSDT","ETHUSDT","SOLUSDT"],
+  "recursive_policy":{
+    "no_fixed_upper_bound_in_prompt":true,
+    "canary_max_generations":3,
+    "global_candidate_cap":160,
+    "adaptive_branching":true,
+    "branching_signals":["predicted_runtime_proxy","feature_affinity","coverage_gap","family_novelty"],
+    "forbidden_branching_signals":["validation_performance","OOS_performance","holdout_performance","historian_rank"],
+    "schema_contract":true
+  },
+  "selection_firewall":"No OOS or holdout selection; canary validates infrastructure and process only."
+}
