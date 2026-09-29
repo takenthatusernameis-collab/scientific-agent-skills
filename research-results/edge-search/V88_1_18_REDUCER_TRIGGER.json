@@ -5,14 +5,15 @@
   "no_new_scientific_compute": true,
   "source_run_id": 36539347437,
   "input_artifact_id": 11019369619,
-  "finalization_run_id": 36543217125,
-  "final_summary_artifact_id": 11021675685,
+  "finalization_run_id": 36543451545,
+  "final_summary_artifact_id": 11021945940,
   "rerun_shard_artifact_ids": [
-    11021910565,
-    11021770718,
-    11021680347,
-    11020409821
+    11022120188,
+    11021990357,
+    11021875495,
+    11021560628
   ],
   "immutable_compute_revision": "3fdb587e9db363ee8406136a66a8cfd0b4f33dcd",
-  "reason": "Execute only the previously blocked rerun reducer against exact frozen artifacts after repairing the final-summary path normalization."
+  "reason": "Execute only the frozen independent rerun reducer after deterministic WAVE_MANIFEST normalization; no new scientific compute.",
+  "trigger_revision": 3
 }
