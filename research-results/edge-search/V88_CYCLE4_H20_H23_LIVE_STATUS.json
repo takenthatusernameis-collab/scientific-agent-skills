@@ -1,0 +1,13 @@
+{
+  "workflow_run_id": 36512678951,
+  "workflow_name": "V88 H20-H23 Fresh 2023 Breadth Wave",
+  "status": "completed",
+  "conclusion": "failure",
+  "head_sha": "b23ddb6c16dc7072df3aa1c425947d89755fb7b2",
+  "html_url": "https://github.com/takenthatusernameis-collab/scientific-agent-skills/actions/runs/36512678951",
+  "prompt_version": "1.8.8",
+  "scientific_results_present": false,
+  "validation_results": [],
+  "config_lock": null,
+  "confirmatory": null
+}
