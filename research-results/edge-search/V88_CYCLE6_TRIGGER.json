@@ -6,5 +6,8 @@
   "no_holdout_feedback": true,
   "new_representation": "1h bars with official Binance Vision monthly fundingRate route",
   "reason": "Continue the V88 breadth frontier with four previously untested mechanisms; bounded pilot before any larger search.",
-  "parent_commit": "980a6b17fff3bb6e9b2b148497319079d5140bfb"
+  "parent_commit": "980a6b17fff3bb6e9b2b148497319079d5140bfb",
+  "trigger_revision": 2,
+  "triggered_by_commit": "315b7b114b249336a7c8eb540737844a36a810d5",
+  "requested_at_utc": "2026-09-29T09:44:00Z"
 }
