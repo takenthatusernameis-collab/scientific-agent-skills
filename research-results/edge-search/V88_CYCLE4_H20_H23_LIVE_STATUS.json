@@ -1,13 +1,246 @@
 {
-  "workflow_run_id": 36513400883,
+  "workflow_run_id": 36514445177,
   "workflow_name": "V88 H20-H23 Fresh 2023 Breadth Wave",
   "status": "completed",
   "conclusion": "failure",
-  "head_sha": "cb639fef01e5a8b57b29791cb053fb52aa88f330",
-  "html_url": "https://github.com/takenthatusernameis-collab/scientific-agent-skills/actions/runs/36513400883",
+  "head_sha": "612af2175cac6d717970dfad41f11776bfe6eb92",
+  "html_url": "https://github.com/takenthatusernameis-collab/scientific-agent-skills/actions/runs/36514445177",
   "prompt_version": "1.8.8",
-  "scientific_results_present": false,
-  "validation_results": [],
-  "config_lock": null,
+  "scientific_results_present": true,
+  "validation_results": [
+    {
+      "experiment_id": "V88-CYCLE4-H20-H23",
+      "prompt_version": "1.8.8",
+      "hypothesis_id": "H20",
+      "strategy_class": "CARRY_FUNDING",
+      "information_source_family": "funding_basis_and_carry",
+      "economic_mechanism": "carry",
+      "position_construction": "cross_sectional_portfolio",
+      "data_domain": "derivatives_cross_section",
+      "real_data": true,
+      "validation_window": [
+        "2023-01-01",
+        "2023-03-31"
+      ],
+      "oos_window": [
+        "2023-04-01",
+        "2023-06-30"
+      ],
+      "holdout_window": [
+        "2023-07-01",
+        "2023-12-31"
+      ],
+      "future_data_hidden": true,
+      "validation": {
+        "n": 270,
+        "mean": -0.0013409792497386763,
+        "PF": 0.7282675891460721,
+        "Sharpe": -2.7454129744593874,
+        "MDD": -0.40530910535651077,
+        "total_return": -0.31888631028861636
+      },
+      "data_manifest_sha256": "470272f05abb45c76afaeba451807b7e5b25ed28c7ed8eedeb7a3fb60e840ee1",
+      "oos_seen": false,
+      "holdout_seen": false,
+      "new_idea": true
+    },
+    {
+      "experiment_id": "V88-CYCLE4-H20-H23",
+      "prompt_version": "1.8.8",
+      "hypothesis_id": "H21",
+      "strategy_class": "RELATIVE_VALUE_MEAN_REVERSION",
+      "information_source_family": "cross_asset_or_cross_market",
+      "economic_mechanism": "mean_reversion",
+      "position_construction": "market_neutral_spread",
+      "data_domain": "spot_plus_perpetuals",
+      "real_data": true,
+      "validation_window": [
+        "2023-01-01",
+        "2023-03-31"
+      ],
+      "oos_window": [
+        "2023-04-01",
+        "2023-06-30"
+      ],
+      "holdout_window": [
+        "2023-07-01",
+        "2023-12-31"
+      ],
+      "future_data_hidden": true,
+      "validation": {
+        "n": 686,
+        "mean": -0.0022466574204928935,
+        "PF": 0.005200127414130546,
+        "Sharpe": -60.03321386597044,
+        "MDD": -0.7814539861230317,
+        "total_return": -0.7862688771120754
+      },
+      "data_manifest_sha256": "470272f05abb45c76afaeba451807b7e5b25ed28c7ed8eedeb7a3fb60e840ee1",
+      "oos_seen": false,
+      "holdout_seen": false,
+      "new_idea": true
+    },
+    {
+      "experiment_id": "V88-CYCLE4-H20-H23",
+      "prompt_version": "1.8.8",
+      "hypothesis_id": "H22",
+      "strategy_class": "MICROSTRUCTURE_ORDER_FLOW",
+      "information_source_family": "volume_and_trade_flow",
+      "economic_mechanism": "lead_lag",
+      "position_construction": "cross_sectional_portfolio",
+      "data_domain": "multi_asset_perpetuals",
+      "real_data": true,
+      "validation_window": [
+        "2023-01-01",
+        "2023-03-31"
+      ],
+      "oos_window": [
+        "2023-04-01",
+        "2023-06-30"
+      ],
+      "holdout_window": [
+        "2023-07-01",
+        "2023-12-31"
+      ],
+      "future_data_hidden": true,
+      "validation": {
+        "n": 2151,
+        "mean": -0.0022225736555358385,
+        "PF": 0.26302816062401235,
+        "Sharpe": -34.22033493468601,
+        "MDD": -0.991572321097812,
+        "total_return": -0.9918706941412349
+      },
+      "data_manifest_sha256": "470272f05abb45c76afaeba451807b7e5b25ed28c7ed8eedeb7a3fb60e840ee1",
+      "oos_seen": false,
+      "holdout_seen": false,
+      "new_idea": true
+    },
+    {
+      "experiment_id": "V88-CYCLE4-H20-H23",
+      "prompt_version": "1.8.8",
+      "hypothesis_id": "H23",
+      "strategy_class": "CALENDAR_SEASONALITY",
+      "information_source_family": "calendar_or_event_time",
+      "economic_mechanism": "seasonality",
+      "position_construction": "event_driven",
+      "data_domain": "multi_asset_perpetuals",
+      "real_data": true,
+      "validation_window": [
+        "2023-01-01",
+        "2023-03-31"
+      ],
+      "oos_window": [
+        "2023-04-01",
+        "2023-06-30"
+      ],
+      "holdout_window": [
+        "2023-07-01",
+        "2023-12-31"
+      ],
+      "future_data_hidden": true,
+      "validation": {
+        "n": 13,
+        "mean": -0.0247005254793307,
+        "PF": 0.21805429497764042,
+        "Sharpe": -8.38217062726587,
+        "MDD": -0.2818880261417199,
+        "total_return": -0.2877379634793271
+      },
+      "data_manifest_sha256": "470272f05abb45c76afaeba451807b7e5b25ed28c7ed8eedeb7a3fb60e840ee1",
+      "oos_seen": false,
+      "holdout_seen": false,
+      "new_idea": true
+    }
+  ],
+  "config_lock": {
+    "all_validation": [
+      {
+        "hypothesis_id": "H20",
+        "strategy_class": "CARRY_FUNDING",
+        "information_source_family": "funding_basis_and_carry",
+        "position_construction": "cross_sectional_portfolio",
+        "data_domain": "derivatives_cross_section",
+        "validation": {
+          "n": 270,
+          "mean": -0.0013409792497386763,
+          "PF": 0.7282675891460721,
+          "Sharpe": -2.7454129744593874,
+          "MDD": -0.40530910535651077,
+          "total_return": -0.31888631028861636
+        }
+      },
+      {
+        "hypothesis_id": "H21",
+        "strategy_class": "RELATIVE_VALUE_MEAN_REVERSION",
+        "information_source_family": "cross_asset_or_cross_market",
+        "position_construction": "market_neutral_spread",
+        "data_domain": "spot_plus_perpetuals",
+        "validation": {
+          "n": 686,
+          "mean": -0.0022466574204928935,
+          "PF": 0.005200127414130546,
+          "Sharpe": -60.03321386597044,
+          "MDD": -0.7814539861230317,
+          "total_return": -0.7862688771120754
+        }
+      },
+      {
+        "hypothesis_id": "H22",
+        "strategy_class": "MICROSTRUCTURE_ORDER_FLOW",
+        "information_source_family": "volume_and_trade_flow",
+        "position_construction": "cross_sectional_portfolio",
+        "data_domain": "multi_asset_perpetuals",
+        "validation": {
+          "n": 2151,
+          "mean": -0.0022225736555358385,
+          "PF": 0.26302816062401235,
+          "Sharpe": -34.22033493468601,
+          "MDD": -0.991572321097812,
+          "total_return": -0.9918706941412349
+        }
+      },
+      {
+        "hypothesis_id": "H23",
+        "strategy_class": "CALENDAR_SEASONALITY",
+        "information_source_family": "calendar_or_event_time",
+        "position_construction": "event_driven",
+        "data_domain": "multi_asset_perpetuals",
+        "validation": {
+          "n": 13,
+          "mean": -0.0247005254793307,
+          "PF": 0.21805429497764042,
+          "Sharpe": -8.38217062726587,
+          "MDD": -0.2818880261417199,
+          "total_return": -0.2877379634793271
+        }
+      }
+    ],
+    "classes": [
+      "CALENDAR_SEASONALITY",
+      "CARRY_FUNDING",
+      "MICROSTRUCTURE_ORDER_FLOW",
+      "RELATIVE_VALUE_MEAN_REVERSION"
+    ],
+    "information_sources": [
+      "calendar_or_event_time",
+      "cross_asset_or_cross_market",
+      "funding_basis_and_carry",
+      "volume_and_trade_flow"
+    ],
+    "position_constructions": [
+      "cross_sectional_portfolio",
+      "event_driven",
+      "market_neutral_spread"
+    ],
+    "data_domains": [
+      "derivatives_cross_section",
+      "multi_asset_perpetuals",
+      "spot_plus_perpetuals"
+    ],
+    "oos_seen": false,
+    "prompt_version": "1.9.1",
+    "family_status": "H20_H23_NO_VALIDATION_ELIGIBLE_CONFIGURATION"
+  },
   "confirmatory": null
 }
