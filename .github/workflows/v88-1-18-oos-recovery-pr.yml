@@ -176,11 +176,28 @@ jobs:
           artifact-ids: ${{ env.INPUT_ARTIFACT_ID }}
           repository: ${{ env.SOURCE_REPO }}
           run-id: ${{ env.SOURCE_RUN_ID }}
-          path: scratch/chatgpt_v88/deep_edge_117/inputs
+          path: scratch/chatgpt_v88/deep_edge_117/source_inputs
       - uses: actions/download-artifact@v4
         with:
           name: v88-1-18-freeze2-repaired
           path: scratch/chatgpt_v88/deep_edge_117
+      - name: Normalize OOS input artifact
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+          r=Path("scratch/chatgpt_v88/deep_edge_117")
+          src=r/"source_inputs"
+          dst=r/"inputs"
+          dst.mkdir(parents=True,exist_ok=True)
+          for name in ["candidate_matrix.json","WAVE_MANIFEST.json","DATA_MANIFEST.json","stage1_matrix.json"]:
+              hits=sorted(src.rglob(name))
+              if len(hits)!=1:
+                  raise SystemExit(f"EXPECTED_EXACTLY_ONE:{name}:{len(hits)}")
+              shutil.copy2(hits[0],dst/name)
+          print("OOS_INPUT_NORMALIZATION_PASS")
+          PY
       - name: Run exact preregistered OOS worker
         run: python scratch/chatgpt_v88/deep_edge_117/oos_worker.py
         env:
