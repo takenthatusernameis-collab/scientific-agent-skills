@@ -1,0 +1,42 @@
+{
+  "prompt_version": "1.6.6",
+  "experiment_id": "V88-CYCLE2-H3",
+  "hypothesis_id": "H3_AFTERHOURS_CONTAGION_REVERSION",
+  "source_archive": "Binance USD-M public 15m archive",
+  "universe_size": 33,
+  "beta_windows": [
+    20,
+    40,
+    60
+  ],
+  "validation_window": [
+    "2024-01-01",
+    "2025-03-31"
+  ],
+  "oos_window": [
+    "2025-04-01",
+    "2026-03-31"
+  ],
+  "holdout_window": [
+    "2026-04-01",
+    "2026-09-25"
+  ],
+  "initial_train_sessions": 60,
+  "shock_thresholds": [
+    0.5,
+    0.75,
+    1
+  ],
+  "quantiles": [
+    5,
+    10
+  ],
+  "exits": [
+    "10:15",
+    "12:00",
+    "close"
+  ],
+  "oos_gate": "net Sharpe >= 1.0, >=100 OOS trades, positive mean net, PF>1",
+  "holdout_gate": "net Sharpe >= 1.0, >=50 holdout trades, positive mean net, PF>1",
+  "synthetic_data_disallowed": true
+}
