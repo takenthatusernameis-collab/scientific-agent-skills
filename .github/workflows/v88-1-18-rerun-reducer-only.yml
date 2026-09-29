@@ -60,18 +60,18 @@ jobs:
         run: |
           set -euo pipefail
           mapfile -t cm < <(find scratch/chatgpt_v88/deep_edge_117 -type f -name candidate_matrix.json)
-          test "${"+'#'}cm[@]}" -eq 1
+          test "${#cm[@]}" -eq 1
           mkdir -p scratch/chatgpt_v88/deep_edge_117/inputs
           cp "${cm[0]}" scratch/chatgpt_v88/deep_edge_117/inputs/candidate_matrix.json
 
           mapfile -t fs < <(find scratch/chatgpt_v88/deep_edge_117/final_summary -type f -name FINAL_EDGE_WAVE_SUMMARY.json)
-          test "${"+'#'}fs[@]}" -eq 1
+          test "${#fs[@]}" -eq 1
           cp "${fs[0]}" scratch/chatgpt_v88/deep_edge_117/FINAL_EDGE_WAVE_SUMMARY.json
 
           rm -rf scratch/chatgpt_v88/deep_edge_117/rerun
           mkdir -p scratch/chatgpt_v88/deep_edge_117/rerun
           mapfile -t rr < <(find scratch/chatgpt_v88/deep_edge_117/rerun_artifacts -type f -name 'shard_*.json' | sort)
-          test "${"+'#'}rr[@]}" -eq 4
+          test "${#rr[@]}" -eq 4
           for f in "${rr[@]}"; do
             cp "$f" scratch/chatgpt_v88/deep_edge_117/rerun/
           done
