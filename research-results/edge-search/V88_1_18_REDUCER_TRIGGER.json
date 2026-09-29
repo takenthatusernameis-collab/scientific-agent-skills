@@ -1,0 +1,18 @@
+{
+  "trigger_type": "V88_FROZEN_RERUN_REDUCER_ONLY",
+  "launch_id": "V88-1-18-FROZEN-RERUN-REDUCER-20260929",
+  "scientific_matrix_frozen": true,
+  "no_new_scientific_compute": true,
+  "source_run_id": 36539347437,
+  "input_artifact_id": 11019369619,
+  "finalization_run_id": 36543217125,
+  "final_summary_artifact_id": 11021675685,
+  "rerun_shard_artifact_ids": [
+    11021910565,
+    11021770718,
+    11021680347,
+    11020409821
+  ],
+  "immutable_compute_revision": "3fdb587e9db363ee8406136a66a8cfd0b4f33dcd",
+  "reason": "Execute only the previously blocked rerun reducer against exact frozen artifacts after repairing the final-summary path normalization."
+}
