@@ -54,5 +54,20 @@
     "preflight_before_real_data": true,
     "no_prompt_mutation_during_run": true,
     "worker_prompt_metadata_must_match": true
-  }
+  },
+  "public_execution_ref": {
+    "repository": "takenthatusernameis-collab/scientific-agent-skills",
+    "branch": "chatgpt/v88-h16-h19-v1-12-2-release-gated-20260929",
+    "workflow_path": ".github/workflows/v88-h16-h19-cycle3.yml",
+    "pre_manifest_head_commit": "086b9ec7a20e8bb1bfb07a727f011e17af174a09",
+    "file_blob_shas": {
+      ".github/workflows/v88-h16-h19-cycle3.yml": "2a15f30710bf820321165297430afea13673be77",
+      "scratch/chatgpt_v88/h16_h19/release_preflight.py": "29b348243bf85c478690adf52404dd2a39edad8d",
+      "scratch/chatgpt_v88/h16_h19/acquire_2023.py": "be5ef8c17de4f0f034f46d8c73bc9a9ed269d2fa",
+      "scratch/chatgpt_v88/h16_h19/run_h16_h19.py": "df9c693e7b7d21747dd93399bcea08abc1a8dd29",
+      "scratch/chatgpt_v88/h16_h19/run_h16_h19_confirm.py": "5c17d35e2dc83c23ad8a92b070064e2aa12df4fa"
+    }
+  },
+  "launch_status": "RELEASE_READY_FOR_PR_TRIGGER",
+  "scientific_rerun_during_reconciliation": false
 }
