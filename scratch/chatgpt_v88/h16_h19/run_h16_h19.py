@@ -4,6 +4,8 @@ import numpy as np,pandas as pd
 
 R=Path(__file__).resolve().parent
 DATA=R.parent/"h16_h19_data"
+PROMPT_VERSION=os.environ.get("V88_PROMPT_VERSION","1.12.2")
+PROMPT_SHA=os.environ.get("V88_PROMPT_SHA","01d55dbe7c790ae91c8424f535e5ac68d52b9dea")
 cands=list(DATA.glob("**/BTCUSDT.csv.gz"))
 if cands: DATA=cands[0].parent
 
@@ -132,7 +134,7 @@ RUN={"H16":h16,"H17":h17,"H18":h18,"H19":h19}
 def main():
     h=os.environ["HYPOTHESIS"]; frames,funding,hashes=load()
     rows=RUN[h](frames,funding,VAL_START,VAL_END) if h=="H16" else RUN[h](frames,VAL_START,VAL_END)
-    out={"experiment_id":"V88-CYCLE3-H16-H19","prompt_version":"1.8.2","hypothesis_id":h,"hypothesis":HYP[h],"strategy_class":{"H16":"CARRY_FUNDING","H17":"LIQUIDITY","H18":"CALENDAR_SEASONALITY","H19":"VOLATILITY_REGIME"}[h],"real_data":True,"validation_window":["2023-01-01","2023-03-31"],"oos_window":["2023-04-01","2023-06-30"],"holdout_window":["2023-07-01","2023-12-31"],"future_data_hidden":True,"validation":metric(rows),"data_manifest_sha256":hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest(),"oos_seen":False,"holdout_seen":False,"new_idea":True}
+    out={"experiment_id":"V88-CYCLE3-H16-H19","prompt_version":PROMPT_VERSION,"prompt_sha":PROMPT_SHA,"code_sha":os.environ.get("GITHUB_SHA","UNKNOWN"),"workflow_run_id":os.environ.get("GITHUB_RUN_ID","UNKNOWN"),"hypothesis_id":h,"hypothesis":HYP[h],"strategy_class":{"H16":"CARRY_FUNDING","H17":"LIQUIDITY","H18":"CALENDAR_SEASONALITY","H19":"VOLATILITY_REGIME"}[h],"real_data":True,"validation_window":["2023-01-01","2023-03-31"],"oos_window":["2023-04-01","2023-06-30"],"holdout_window":["2023-07-01","2023-12-31"],"future_data_hidden":True,"validation":metric(rows),"data_manifest_sha256":hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest(),"oos_seen":False,"holdout_seen":False,"new_idea":True}
     p=DATA/"results"; p.mkdir(parents=True,exist_ok=True); (p/f"{h}_VALIDATION.json").write_text(json.dumps(out,indent=2,default=str)+"
 "); print(json.dumps(out,indent=2,default=str))
 if __name__=="__main__": main()
