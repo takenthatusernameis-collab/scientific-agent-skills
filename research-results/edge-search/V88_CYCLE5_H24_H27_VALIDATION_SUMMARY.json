@@ -1,7 +1,128 @@
 {
   "experiment_id": "V88-CYCLE5-H24-H27",
   "prompt_version": "1.9.5",
-  "validation_results": [],
+  "validation_results": [
+    {
+      "experiment_id": "V88-CYCLE5-H24-H27",
+      "prompt_version": "1.9.6",
+      "hypothesis_id": "H24",
+      "config_id": "H24",
+      "strategy_class": "LIQUIDITY",
+      "information_source_family": "open_interest_and_liquidations",
+      "economic_mechanism": "liquidity_dislocation",
+      "position_construction": "single_asset_directional",
+      "data_domain": "perpetuals",
+      "real_data": true,
+      "future_data_hidden": true,
+      "status": "VALIDATION_COMPLETE",
+      "validation": {
+        "n": 2,
+        "mean": -0.0073964254661513865,
+        "PF": 0.0,
+        "Sharpe": -16.66132810767766,
+        "MDD": -0.012379501809578475,
+        "total_return": -0.014762974872470802
+      },
+      "cost_model": {
+        "round_trip": 0.0021
+      },
+      "data_manifest_sha256": "4389135f955f420746bbc834eb2ff8336cd5125e53d9a8202a7ba7a3dcfabd45",
+      "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
+      "code_sha": "03e9e2c96bc82a89143606997fd6425f66b85c95",
+      "workflow_run_id": "36518289550",
+      "evidence_stage": "VALIDATION"
+    },
+    {
+      "experiment_id": "V88-CYCLE5-H24-H27",
+      "prompt_version": "1.9.6",
+      "hypothesis_id": "H25",
+      "config_id": "H25",
+      "strategy_class": "CROSS_ASSET_LEAD_LAG",
+      "information_source_family": "open_interest_and_liquidations",
+      "economic_mechanism": "lead_lag",
+      "position_construction": "cross_sectional_portfolio",
+      "data_domain": "derivatives_cross_section",
+      "real_data": true,
+      "future_data_hidden": true,
+      "status": "VALIDATION_COMPLETE",
+      "validation": {
+        "n": 88,
+        "mean": 0.010155186969246738,
+        "PF": 1.6250415233667965,
+        "Sharpe": 2.678419531995411,
+        "MDD": -0.24368921754765394,
+        "total_return": 1.1018893244619123
+      },
+      "cost_model": {
+        "round_trip": 0.0021
+      },
+      "data_manifest_sha256": "4389135f955f420746bbc834eb2ff8336cd5125e53d9a8202a7ba7a3dcfabd45",
+      "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
+      "code_sha": "03e9e2c96bc82a89143606997fd6425f66b85c95",
+      "workflow_run_id": "36518289550",
+      "evidence_stage": "VALIDATION"
+    },
+    {
+      "experiment_id": "V88-CYCLE5-H24-H27",
+      "prompt_version": "1.9.6",
+      "hypothesis_id": "H26",
+      "config_id": "H26",
+      "strategy_class": "MICROSTRUCTURE_ORDER_FLOW",
+      "information_source_family": "order_book_and_market_impact",
+      "economic_mechanism": "mean_reversion",
+      "position_construction": "event_driven",
+      "data_domain": "perpetuals",
+      "real_data": true,
+      "future_data_hidden": true,
+      "status": "VALIDATION_COMPLETE",
+      "validation": {
+        "n": 12,
+        "mean": 0.006979580879151497,
+        "PF": 2.1635061483287545,
+        "Sharpe": 3.825342227150661,
+        "MDD": -0.0342837662056954,
+        "total_return": 0.08219871081681052
+      },
+      "cost_model": {
+        "round_trip": 0.0021
+      },
+      "data_manifest_sha256": "4389135f955f420746bbc834eb2ff8336cd5125e53d9a8202a7ba7a3dcfabd45",
+      "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
+      "code_sha": "03e9e2c96bc82a89143606997fd6425f66b85c95",
+      "workflow_run_id": "36518289550",
+      "evidence_stage": "VALIDATION"
+    },
+    {
+      "experiment_id": "V88-CYCLE5-H24-H27",
+      "prompt_version": "1.9.6",
+      "hypothesis_id": "H27",
+      "config_id": "H27",
+      "strategy_class": "LIQUIDITY",
+      "information_source_family": "order_book_and_market_impact",
+      "economic_mechanism": "trend_continuation",
+      "position_construction": "conditional_portfolio",
+      "data_domain": "perpetuals",
+      "real_data": true,
+      "future_data_hidden": true,
+      "status": "VALIDATION_COMPLETE",
+      "validation": {
+        "n": 18,
+        "mean": 0.0023503367939572673,
+        "PF": 1.385894173641474,
+        "Sharpe": 1.917138269750099,
+        "MDD": -0.05849288297678579,
+        "total_return": 0.03984793303306722
+      },
+      "cost_model": {
+        "round_trip": 0.0021
+      },
+      "data_manifest_sha256": "4389135f955f420746bbc834eb2ff8336cd5125e53d9a8202a7ba7a3dcfabd45",
+      "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
+      "code_sha": "03e9e2c96bc82a89143606997fd6425f66b85c95",
+      "workflow_run_id": "36518289550",
+      "evidence_stage": "VALIDATION"
+    }
+  ],
   "oos_seen": false,
   "holdout_seen": false,
   "selection_firewall": "No OOS promotion in this wave."
