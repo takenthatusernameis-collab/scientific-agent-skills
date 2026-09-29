@@ -125,7 +125,6 @@ def main():
     m,hashes=run(h)
     out={"experiment_id":"V88-CYCLE2-H9-H10","prompt_version":"1.7.0","hypothesis_id":h,"hypothesis":HYP[h],"real_data":True,"validation_window":["2025-10-01","2026-03-31"],"future_data_hidden":True,"validation":m,"data_manifest_sha256":hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest(),"oos_seen":False,"holdout_seen":False}
     outdir=DATA/"results"; outdir.mkdir(parents=True,exist_ok=True)
-    (outdir/f"{h}_VALIDATION.json").write_text(json.dumps(out,indent=2)+"
-")
+    (outdir/f"{h}_VALIDATION.json").write_text(json.dumps(out,indent=2)+"\\n")
     print(json.dumps(out,indent=2))
 if __name__=="__main__": main()
