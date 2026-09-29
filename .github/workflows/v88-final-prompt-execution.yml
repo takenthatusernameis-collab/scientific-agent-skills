@@ -28,7 +28,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install real-data execution dependencies
-        run: python -m pip install --disable-pip-version-check --no-input pyyaml numpy pandas vectorbt
+        run: python -m pip install --disable-pip-version-check --no-input pyyaml numpy pandas vectorbt ccxt
 
       - name: Execute V88 Cycle 2 H1 against real Binance data
         run: python scratch/chatgpt_v88/final_release/run_h1_real.py
