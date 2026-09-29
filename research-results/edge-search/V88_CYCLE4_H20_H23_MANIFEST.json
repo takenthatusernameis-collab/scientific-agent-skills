@@ -82,7 +82,7 @@
     "workflow_sha": "2172648fbfe86b120c8b14c4ddbef34ceab3708a"
   },
   "triggered_at_utc": "2026-09-29T02:27:22.898Z",
-  "repair_revision": 3,
+  "repair_revision": 4,
   "repair_reason": "All four validation workers reached the shared loader and failed on pandas mixed-format funding timestamps; parser repair only.",
   "universe_fix": {
     "symbols": [
