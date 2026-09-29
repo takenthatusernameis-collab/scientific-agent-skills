@@ -1,0 +1,8 @@
+{
+  "experiment_id": "V88-CYCLE5-H24-H27",
+  "prompt_version": "1.9.5",
+  "validation_results": [],
+  "oos_seen": false,
+  "holdout_seen": false,
+  "selection_firewall": "No OOS promotion in this wave."
+}
