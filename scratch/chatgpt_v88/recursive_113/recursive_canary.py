@@ -40,6 +40,8 @@ def load_symbol(sym):
             names=[n for n in z.namelist() if n.endswith(".csv")]
             if not names: raise RuntimeError(f"NO_CSV {sym} {m}")
             d=pd.read_csv(z.open(names[0]),header=None)
+        if str(d.iloc[0,0]).strip().lower() in {"open_time","open time"}:
+            d=d.iloc[1:].reset_index(drop=True)
         d=d.iloc[:,[0,4,5]].copy()
         d.columns=["timestamp","close","volume"]
         d["timestamp"]=pd.to_datetime(pd.to_numeric(d["timestamp"]),unit="ms",utc=True)
