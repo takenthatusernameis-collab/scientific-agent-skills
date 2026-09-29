@@ -127,11 +127,11 @@ def acquire():
                     continue
                 with zz.open(names[0]) as fh:
                     df = pd.read_csv(fh, header=None, usecols=[0,4], names=["open_time","close"])
-            if not np.issubdtype(df["open_time"].dtype, np.number):
-                df = df.iloc[1:]
-            df["open_time"] = pd.to_datetime(pd.to_numeric(df["open_time"]), unit="ms", utc=True)
+            df["open_time"] = pd.to_numeric(df["open_time"], errors="coerce")
             df["close"] = pd.to_numeric(df["close"], errors="coerce")
-            df = df.dropna().set_index("open_time")
+            df = df.dropna(subset=["open_time","close"])
+            df["open_time"] = pd.to_datetime(df["open_time"], unit="ms", utc=True)
+            df = df.set_index("open_time")
             parts.append(df)
 
         if not parts:
