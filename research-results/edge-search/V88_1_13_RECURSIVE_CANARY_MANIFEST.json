@@ -1,0 +1,19 @@
+{
+  "prompt_version":"1.13.0",
+  "prompt_sha":"0b36b75ad614a6839fb0b0badfd28b8bbb2999b2",
+  "experiment_id":"V88-1-13-RECURSIVE-REALDATA-CANARY",
+  "stage":"EXECUTION_CANARY",
+  "scientific_claim":false,
+  "roots":[
+    {"mechanism":"time_series_momentum","lookback":12,"representation":"level","holding_bars":1,"state":"all"},
+    {"mechanism":"time_series_reversal","lookback":24,"representation":"level","holding_bars":1,"state":"all"},
+    {"mechanism":"breakout_range","lookback":48,"representation":"level","holding_bars":1,"state":"all"},
+    {"mechanism":"volume_flow","lookback":24,"representation":"zscore","holding_bars":1,"state":"all"}
+  ],
+  "recursive_policy":{
+    "max_generations_in_canary":3,
+    "no_fixed_upper_bound_in_prompt":true,
+    "child_generation_is_deterministic":true,
+    "oos_or_holdout_selection":false
+  }
+}
