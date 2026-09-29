@@ -266,7 +266,7 @@ def validate():
         })
     out = {
         "experiment_id":"V88-CYCLE2-H4-US-SESSION-LEADER",
-        "prompt_version":"1.6.7",
+        "prompt_version":"1.6.8",
         "real_data":True,
         "validation_window":["2024-01-01","2025-09-30"],
         "candidate_configs":rows,
@@ -287,7 +287,7 @@ def confirm():
     hold = metrics([x["net_return"] for x in hold_trades])
     out = {
         "experiment_id":"V88-CYCLE2-H4-CONFIRMATORY",
-        "prompt_version":"1.6.7",
+        "prompt_version":"1.6.8",
         "real_data":True,
         "selected_config":{"threshold":threshold,"exit":exit_label},
         "oos":oos,
