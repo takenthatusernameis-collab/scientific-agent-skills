@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "terminal-artifact-v1-template",
+  "schema_version": "terminal-artifact-v1",
+  "terminal_status": "PROMISING_BUT_UNVERIFIED",
+  "experiment_id": "<immutable-experiment-id>",
+  "scientific_contract_sha256": "<64-hex-sha256>",
+  "worker_repository": "<owner/repo>",
+  "worker_commit_sha": "<40-hex-git-sha>",
+  "workflow_run_id": "<provider-run-id-or-null>",
+  "created_at_utc": "<RFC3339-UTC>",
+  "inputs": [
+    {
+      "id": "<stable-input-id>",
+      "role": "market_data",
+      "path": "<relative-file>",
+      "sha256": "<64-hex-sha256>",
+      "source": "<provider>",
+      "source_symbol": "<symbol>",
+      "retrieval_parameters": {},
+      "first_timestamp": "<RFC3339-or-null>",
+      "last_timestamp": "<RFC3339-or-null>",
+      "row_count": "<integer-or-null>"
+    }
+  ],
+  "acquisition_records": [
+    {
+      "id": "<stable-acquisition-id>",
+      "source": "<provider>",
+      "symbol": "<symbol>",
+      "period_start": "<timestamp>",
+      "period_end": "<timestamp>",
+      "status": "SUCCESS",
+      "row_count": "<integer>",
+      "content_sha256": "<64-hex-sha256>",
+      "request_parameters": {}
+    }
+  ],
+  "selection_lock": {
+    "selection_frozen": true,
+    "candidate_set_sha256": "<64-hex-sha256>",
+    "oos_selection_allowed": false
+  },
+  "oos_split": {
+    "is_end": "<timestamp>",
+    "oos_start": "<timestamp>",
+    "oos_end": "<timestamp>",
+    "boundary_rule": "<explicit-causal-rule>",
+    "warmup_bars": "<integer>"
+  },
+  "shards": [
+    {
+      "shard_id": "<stable-id>",
+      "input_digest": "<64-hex-sha256>",
+      "result_path": "<relative-file-or-null>",
+      "result_sha256": "<64-hex-sha256-or-null>",
+      "status": "SUCCESS"
+    }
+  ],
+  "reducer": {
+    "result_path": "<relative-file>",
+    "result_sha256": "<64-hex-sha256>",
+    "reducer_code_sha256": "<64-hex-sha256>",
+    "exact_expected_count": "<integer-or-null>",
+    "actual_count": "<integer-or-null>"
+  },
+  "result_files": [
+    {
+      "path": "<relative-file>",
+      "sha256": "<64-hex-sha256>",
+      "required": true
+    }
+  ],
+  "artifact_digest": {
+    "algorithm": "sha256",
+    "excluded_paths": [
+      "terminal_manifest.json"
+    ],
+    "digest_basis": "sorted path + NUL + sha256 + NUL + size",
+    "sha256": "<64-hex-sha256>"
+  }
+}
