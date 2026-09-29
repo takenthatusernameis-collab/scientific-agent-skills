@@ -15,6 +15,7 @@ for s in syms:
   oi=pd.read_parquet(D/f"{s}_oi_daily.parquet").set_index("timestamp").sort_index().oi.astype("float64")
   out[f"{s}|oi"]=oi
  else: out[f"{s}|oi"]=np.nan
+ out[f"{s}|oichg1"]=out[f"{s}|oi"].pct_change(1)
  for L in [3,5,10,20,40,80]:
   out[f"{s}|ret{L}"]=out[f"{s}|close"].pct_change(L)
   out[f"{s}|vol{L}"]=out[f"{s}|close"].pct_change().rolling(L,min_periods=max(3,L//2)).std()
