@@ -23,6 +23,46 @@ jobs:
       - run: python -m pip install --disable-pip-version-check --no-input pandas pyarrow binance-vision
       - name: Acquire exact real-data validation package
         run: python scratch/chatgpt_v88/h24_h27/acquire_2023.py
+      - name: Execution readiness canary
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib
+          import pandas as pd
+          root=pathlib.Path("scratch/chatgpt_v88/h24_h27")
+          data=root/"data"
+          required = {
+            "metrics": [f"{s}_metrics.parquet" for s in ["BTCUSDT","ETHUSDT","SOLUSDT","DOGEUSDT","INJUSDT","OPUSDT","STXUSDT","LINKUSDT"]],
+            "bookDepth": [f"{s}_bookDepth.parquet" for s in ["BTCUSDT","ETHUSDT"]],
+            "klines": [f"{s}_klines_1h.parquet" for s in ["BTCUSDT","ETHUSDT","SOLUSDT","DOGEUSDT","INJUSDT","OPUSDT","STXUSDT","LINKUSDT"]]
+          }
+          observed=[]
+          for family, names in required.items():
+            for name in names:
+              p=data/name
+              if not p.exists():
+                raise SystemExit(f"INFRASTRUCTURE_FAILURE: missing required artifact {p}")
+              df=pd.read_parquet(p)
+              if len(df)==0:
+                raise SystemExit(f"INFRASTRUCTURE_FAILURE: empty required artifact {p}")
+              if family=="metrics" and "create_time" not in df.columns:
+                raise SystemExit(f"INFRASTRUCTURE_FAILURE: metrics schema mismatch {p}")
+              if family=="bookDepth" and not {"timestamp","percentage","depth","notional"}.issubset(df.columns):
+                raise SystemExit(f"INFRASTRUCTURE_FAILURE: bookDepth schema mismatch {p}")
+              if family=="klines" and not {"open_time","open"}.issubset(df.columns):
+                raise SystemExit(f"INFRASTRUCTURE_FAILURE: klines schema mismatch {p}")
+              observed.append({"family":family,"file":name,"rows":int(len(df)),"columns":list(df.columns)})
+          manifest=root/"DATA_MANIFEST.json"
+          manifest_sha=hashlib.sha256(manifest.read_bytes()).hexdigest()
+          report={"experiment_id":"V88-CYCLE5-H24-H27","prompt_version":"1.9.6","prompt_sha":"8a8cb933efa45236916cc8a3989e097e0de3856b","artifact_digest":manifest_sha,"expected_artifact_count":18,"observed_artifact_count":len(observed),"families":sorted(required),"loader_readiness":"PASS"}
+          (root/"READINESS_CANARY.json").write_text(json.dumps(report,indent=2)+"\n")
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-h24-h27-readiness-canary
+          path: scratch/chatgpt_v88/h24_h27/READINESS_CANARY.json
+          if-no-files-found: error
+          retention-days: 1
       - uses: actions/upload-artifact@v4
         with:
           name: v88-h24-h27-data
