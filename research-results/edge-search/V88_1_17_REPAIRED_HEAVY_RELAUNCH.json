@@ -5,5 +5,10 @@
   "shards": 64,
   "repair": "Rerun reducer now downloads and normalizes immutable WAVE_MANIFEST.json and candidate_matrix.json from v88-1-17-inputs before reducer readiness.",
   "scientific_matrix_unchanged": true,
-  "stale_run_supersession": true
+  "stale_run_supersession": true,
+  "design_repair_r1": {
+    "issue": "generator cardinality mismatch: 6144 enumerated vs 4096 declared",
+    "repair": "lookbacks [5,10,20,40]; exact cardinality 4096",
+    "scoring_started": false
+  }
 }

@@ -9,7 +9,7 @@ START="2023-01-01"; END="2026-09-20"
 SYMS=["BTCUSDT","DOGEUSDT","LINKUSDT","AVAXUSDT","NEARUSDT","FILUSDT","ATOMUSDT","UNIUSDT","AAVEUSDT","INJUSDT","OPUSDT","STXUSDT","ARBUSDT","APTUSDT","SUIUSDT"]
 OI_SYMS=["BTCUSDT","DOGEUSDT","LINKUSDT","AVAXUSDT"]
 
-LOOKBACKS=[3,5,10,20,40,80]; HOLDS=[1,3,5,10]; THRESH=[0.0,0.5,1.0,1.5]; QUANTS=[0.10,0.20,0.30,0.40]
+LOOKBACKS=[5,10,20,40]; HOLDS=[1,3,5,10]; THRESH=[0.0,0.5,1.0,1.5]; QUANTS=[0.10,0.20,0.30,0.40]
 FAMILIES=[
  "TS_MOM","TS_REV","XS_MOM","XS_REV","BREAKOUT","BREAKDOWN","VOL_MOM","VOL_CONTRA",
  "OI_SHOCK_CONT","OI_SHOCK_REV","OI_PRICE_DIV","OI_XS","BREADTH_MOM","BREADTH_REV","BTC_REL_MOM","VOL_BREAKOUT"
@@ -64,7 +64,8 @@ for sym in OI_SYMS:
     r=metrics_daily(sym)
     manifest[f"{sym}_metrics"]={"rows":int(len(r.data)),"sha256":hashlib.sha256(Path(r.output_path).read_bytes()).hexdigest(),"missing":len(r.missing)}
 
-# Broad preregistered matrix: 16 families x 6 lookbacks x 4 holds x 4 thresholds x 4 quantiles.
+expected_cardinality=len(FAMILIES)*len(LOOKBACKS)*len(HOLDS)*len(THRESH)*len(QUANTS)
+assert expected_cardinality==4096, f"PREREGISTERED_CARDINALITY_MISMATCH:{expected_cardinality}"
 candidates=[]
 for fam in FAMILIES:
   for L in LOOKBACKS:
@@ -73,7 +74,7 @@ for fam in FAMILIES:
         for Q in QUANTS:
           spec={"family":fam,"lookback":L,"hold":H,"threshold":T,"quantile":Q,"universe":"full"}
           spec["candidate_id"]=cid(spec); candidates.append(spec)
-assert len(candidates)==4096
+assert len(candidates)==expected_cardinality==4096
 
 # Balanced static shards; Stage 1 uses exactly 64 shards x 64 candidates.
 shards=[]

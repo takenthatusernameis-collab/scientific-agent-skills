@@ -16,7 +16,7 @@ for s in syms:
   out[f"{s}|oi"]=oi
  else: out[f"{s}|oi"]=np.nan
  out[f"{s}|oichg1"]=out[f"{s}|oi"].pct_change(1)
- for L in [3,5,10,20,40,80]:
+ for L in [5,10,20,40]:
   out[f"{s}|ret{L}"]=out[f"{s}|close"].pct_change(L)
   out[f"{s}|vol{L}"]=out[f"{s}|close"].pct_change().rolling(L,min_periods=max(3,L//2)).std()
   out[f"{s}|volz{L}"]=(out[f"{s}|volume"]-out[f"{s}|volume"].rolling(L,min_periods=max(3,L//2)).mean())/out[f"{s}|volume"].rolling(L,min_periods=max(3,L//2)).std().replace(0,np.nan)
