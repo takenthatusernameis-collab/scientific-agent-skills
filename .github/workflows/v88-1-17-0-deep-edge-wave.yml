@@ -355,12 +355,37 @@ jobs:
       - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
       - uses: actions/download-artifact@v4
         with:
+          name: v88-1-17-inputs
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+      - uses: actions/download-artifact@v4
+        with:
           name: v88-1-17-final-summary
           path: scratch/chatgpt_v88/deep_edge_117
       - uses: actions/download-artifact@v4
         with:
           pattern: v88-1-17-rerun-*
-          path: scratch/chatgpt_v88/deep_edge_117/rerun
+          path: scratch/chatgpt_v88/deep_edge_117/rerun_artifacts
+      - name: Normalize rerun reducer inputs
+        run: |
+          set -euo pipefail
+          mapfile -t wm < <(find scratch/chatgpt_v88/deep_edge_117 -type f -name WAVE_MANIFEST.json | sort)
+          test ${#wm[@]} -eq 1
+          cp "${wm[0]}" scratch/chatgpt_v88/deep_edge_117/inputs/WAVE_MANIFEST.json
+          mapfile -t cm < <(find scratch/chatgpt_v88/deep_edge_117 -type f -name candidate_matrix.json | sort)
+          test ${#cm[@]} -eq 1
+          cp "${cm[0]}" scratch/chatgpt_v88/deep_edge_117/inputs/candidate_matrix.json
+          rm -rf scratch/chatgpt_v88/deep_edge_117/rerun
+          mkdir -p scratch/chatgpt_v88/deep_edge_117/rerun
+          mapfile -t rr < <(find scratch/chatgpt_v88/deep_edge_117/rerun_artifacts -type f -name 'shard_*.json' | sort)
+          test ${#rr[@]} -eq 4
+          for f in "${rr[@]}"; do cp "$f" scratch/chatgpt_v88/deep_edge_117/rerun/; done
+      - name: Rerun reducer readiness
+        run: |
+          set -euo pipefail
+          test -f scratch/chatgpt_v88/deep_edge_117/inputs/WAVE_MANIFEST.json
+          test -f scratch/chatgpt_v88/deep_edge_117/inputs/candidate_matrix.json
+          test -f scratch/chatgpt_v88/deep_edge_117/FINAL_EDGE_WAVE_SUMMARY.json
+          test "$(find scratch/chatgpt_v88/deep_edge_117/rerun -type f -name 'shard_*.json' | wc -l)" -eq 4
       - run: python scratch/chatgpt_v88/deep_edge_117/rerun_reduce.py
       - uses: actions/upload-artifact@v4
         with:
