@@ -1,0 +1,67 @@
+name: V88 1.17 Independent Provenance Audit
+on:
+  push:
+    branches:
+      - audit/v88-1-17-provenance-20260929
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-deep-edge-117.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
+      - name: Download immutable run #89 raw source
+        uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-raw
+          path: scratch/chatgpt_v88/deep_edge_117/raw
+          repository: takenthatusernameis-collab/scientific-agent-skills
+          run-id: 36623844248
+          github-token: ${{ github.token }}
+      - name: Download immutable run #89 normalized data
+        uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-data
+          path: scratch/chatgpt_v88/deep_edge_117/data
+          repository: takenthatusernameis-collab/scientific-agent-skills
+          run-id: 36623844248
+          github-token: ${{ github.token }}
+      - name: Download immutable run #89 inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-inputs
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+          repository: takenthatusernameis-collab/scientific-agent-skills
+          run-id: 36623844248
+          github-token: ${{ github.token }}
+      - name: Download immutable run #89 plan
+        uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-plan
+          path: scratch/chatgpt_v88/deep_edge_117/plan
+          repository: takenthatusernameis-collab/scientific-agent-skills
+          run-id: 36623844248
+          github-token: ${{ github.token }}
+      - name: Download immutable run #89 features
+        uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-features
+          path: scratch/chatgpt_v88/deep_edge_117/features
+          repository: takenthatusernameis-collab/scientific-agent-skills
+          run-id: 36623844248
+          github-token: ${{ github.token }}
+      - name: Independently reconstruct source to features and candidate plan
+        run: python scratch/chatgpt_v88/deep_edge_117/independent_provenance_verify.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-independent-provenance-audit-run89
+          path: scratch/chatgpt_v88/deep_edge_117/PROVENANCE_INDEPENDENT_VERIFICATION.json
+          retention-days: 7
+          if-no-files-found: error
