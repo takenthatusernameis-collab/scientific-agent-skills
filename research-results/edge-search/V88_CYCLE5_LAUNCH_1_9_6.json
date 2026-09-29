@@ -1,0 +1,13 @@
+{
+  "experiment_id": "V88-CYCLE5-H24-H27",
+  "prompt_version": "1.9.6",
+  "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
+  "workflow_sha": "bf4bedc068ae412904a0e34b214631a433daf77f",
+  "reason": "Fresh execution after execution-evidence publication repair; no scientific result contained.",
+  "quarantined_prior_runs": [
+    36517769407,
+    36518267680,
+    36518275107,
+    36518289550
+  ]
+}
