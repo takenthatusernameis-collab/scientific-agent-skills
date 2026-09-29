@@ -105,7 +105,7 @@ def signal_for(hypothesis, i, idx, ret):
         return {"weights": {leader: float(direction)}, "reason": "btc_shock_vs_relative_extreme"}
 
     if hypothesis == "H6":
-        # Continuation: BTC impulse plus broad confirmation, then strongest residual leader.
+        # Continuation: BTC intraday impulse plus broad confirmation, then strongest residual leader.
         breadth = float((alts > 0).mean())
         if btc >= 0.0015 and breadth >= 0.60:
             leader = rel.idxmax()
