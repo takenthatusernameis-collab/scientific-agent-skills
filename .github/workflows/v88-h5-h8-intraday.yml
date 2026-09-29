@@ -3,6 +3,8 @@ name: V88 H5-H8 Intraday Hypothesis Wave
 on:
   push:
     branches: ["chatgpt/v88-h5-h8-intraday-20260929"]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -11,7 +13,7 @@ jobs:
   validation-screen:
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 3
       matrix:
         hypothesis: ["H5","H6","H7","H8"]
     runs-on: ubuntu-latest
