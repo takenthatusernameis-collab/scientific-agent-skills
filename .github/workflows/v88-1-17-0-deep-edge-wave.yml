@@ -8,7 +8,7 @@ permissions:
   contents: read
 concurrency:
   group: v88-1-17-deep-edge-wave
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   prepare:
@@ -26,6 +26,8 @@ jobs:
       - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-117.txt
       - name: Compile preflight
         run: python -m compileall -q scratch/chatgpt_v88/deep_edge_117
+      - name: Round-trip cost sanity preflight
+        run: python scratch/chatgpt_v88/deep_edge_117/preflight_cost_sanity.py
       - name: Acquire preregistered real data and generate 4096-candidate matrix
         run: python scratch/chatgpt_v88/deep_edge_117/deep_prepare.py
       - name: Materialize immutable feature bundle
