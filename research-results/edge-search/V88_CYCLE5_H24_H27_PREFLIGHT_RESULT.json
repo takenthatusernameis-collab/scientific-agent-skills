@@ -1,0 +1,22 @@
+{
+  "preflight_only": true,
+  "scientific_results": false,
+  "package": "binance-vision",
+  "package_version": "0.1.0",
+  "checks": [
+    {
+      "data_type": "metrics",
+      "status": "AVAILABLE",
+      "rows": 864,
+      "missing": [],
+      "failed": []
+    },
+    {
+      "data_type": "bookDepth",
+      "status": "AVAILABLE",
+      "rows": 85830,
+      "missing": [],
+      "failed": []
+    }
+  ]
+}
