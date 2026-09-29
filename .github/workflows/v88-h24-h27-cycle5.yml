@@ -58,11 +58,13 @@ jobs:
       - name: Execute one preregistered validation worker
         env:
           HYPOTHESIS: ${{ matrix.hypothesis }}
+          V88_PROMPT_VERSION: "1.9.6"
+          V88_PROMPT_SHA: "8a8cb933efa45236916cc8a3989e097e0de3856b"
         run: python scratch/chatgpt_v88/h24_h27/run_h24_h27.py
       - uses: actions/upload-artifact@v4
         with:
           name: v88-h24-h27-validation-${{ matrix.hypothesis }}
-          path: scratch/chatgpt_v88/h24_h27/data/results/H${{ matrix.hypothesis }}_VALIDATION.json
+          path: scratch/chatgpt_v88/h24_h27/data/results/${{ matrix.hypothesis }}_VALIDATION.json
           if-no-files-found: error
           retention-days: 1
 
@@ -81,8 +83,14 @@ jobs:
         run: |
           python - <<'PY'
           import glob,json,pathlib
+          expected={f"{h}_VALIDATION.json" for h in ["H24","H25","H26","H27"]}
           files=sorted(glob.glob("validation-results/**/H*_VALIDATION.json",recursive=True))
+          found={pathlib.Path(f).name for f in files}
+          if found != expected:
+            raise SystemExit(f"INFRASTRUCTURE_FAILURE: expected {sorted(expected)}, found {sorted(found)}")
           rows=[json.load(open(f)) for f in files]
+          if any(r.get("status") != "VALIDATION_COMPLETE" for r in rows):
+            raise SystemExit("INFRASTRUCTURE_FAILURE: at least one worker did not reach VALIDATION_COMPLETE")
           out={"experiment_id":"V88-CYCLE5-H24-H27","prompt_version":"1.9.5","validation_results":rows,"oos_seen":False,"holdout_seen":False,"selection_firewall":"No OOS promotion in this wave."}
           pathlib.Path("summary.json").write_text(json.dumps(out,indent=2)+"\n")
           print(json.dumps(out,indent=2))
@@ -97,6 +105,8 @@ jobs:
         with:
           path: persist
       - run: |
+          git fetch origin main
+          git reset --hard origin/main
           mkdir -p persist/research-results/edge-search
           cp summary.json persist/research-results/edge-search/V88_CYCLE5_H24_H27_VALIDATION_SUMMARY.json
       - name: Persist validation summary
@@ -105,5 +115,11 @@ jobs:
           git config user.name "v88-cycle5"
           git config user.email "v88-cycle5@users.noreply.github.com"
           git add research-results/edge-search/V88_CYCLE5_H24_H27_VALIDATION_SUMMARY.json
-          git commit -m "V88 Cycle5: persist H24-H27 validation summary" || exit 0
+          git commit -m "V88 Cycle5: persist H24-H27 validation summary"
+          git fetch origin main
+          git rebase origin/main
           git push origin HEAD:main
+          git fetch origin main
+          local_sha=$(sha256sum research-results/edge-search/V88_CYCLE5_H24_H27_VALIDATION_SUMMARY.json | cut -d" " -f1)
+          remote_sha=$(git show origin/main:research-results/edge-search/V88_CYCLE5_H24_H27_VALIDATION_SUMMARY.json | sha256sum | cut -d" " -f1)
+          test "$local_sha" = "$remote_sha"
