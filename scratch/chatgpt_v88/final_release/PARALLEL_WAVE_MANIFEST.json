@@ -1,0 +1,36 @@
+{
+  "prompt_version": "1.6.6",
+  "experiment_family": "V88-CYCLE2-H1_RESIDUAL_XS_MOMENTUM",
+  "stage_1": "PARALLEL_VALIDATION_SCREEN",
+  "configurations": [
+    {
+      "config_id": "B60_H4",
+      "beta": 60,
+      "horizon": 4
+    },
+    {
+      "config_id": "B90_H6",
+      "beta": 90,
+      "horizon": 6
+    },
+    {
+      "config_id": "B120_H6",
+      "beta": 120,
+      "horizon": 6
+    },
+    {
+      "config_id": "B90_H12",
+      "beta": 90,
+      "horizon": 12
+    }
+  ],
+  "validation_window": [
+    "2024-01-01T00:00:00Z",
+    "2025-09-30T23:59:59Z"
+  ],
+  "confirmatory_oos_start": "2025-10-01T00:00:00Z",
+  "selection_before_oos": true,
+  "sibling_oos_visibility": "FORBIDDEN",
+  "max_parallel_workers": 4,
+  "purpose": "Operationalize V88 v1.6.6 bounded parallel compute without contaminating the active v1.6.5 H1 run."
+}
