@@ -1,0 +1,33 @@
+{
+  "prompt_version":"1.14.0",
+  "prompt_sha":"13bf568b1af894fbcb118090890eff466e7f1764",
+  "execution_run_id":36523940818,
+  "execution_conclusion":"COMPUTE_SUCCESS_EVIDENCE_HANDOFF_FAILURE",
+  "stage":"EXECUTION_CANARY",
+  "scientific_claim":false,
+  "root_candidates":4,
+  "candidates_processed":83,
+  "generation_counts":{"0":4,"1":24,"2":55},
+  "frontier_remaining":0,
+  "unique_candidate_ids":83,
+  "duplicate_candidates_rejected":0,
+  "data_manifest_sha256":"7c2d29a09d977b9c60b4dfb76f25e1f19b0b601ac05aefe77b1ef9764c198661",
+  "artifact_id":11014580677,
+  "artifact_sha256":"sha256:652e792956267c153d42c178f3dbabf1495cd25c9f7d3901bccf9e458f098d74",
+  "schema_adapter_version":"1.14.0",
+  "schema_fingerprints":{
+    "BTCUSDT":"5a5ece94b27a4b6ae7207b03957535395c413295c0d38cd8be58258b85b42ed2",
+    "ETHUSDT":"5a5ece94b27a4b6ae7207b03957535395c413295c0d38cd8be58258b85b42ed2",
+    "SOLUSDT":"5a5ece94b27a4b6ae7207b03957535395c413295c0d38cd8be58258b85b42ed2"
+  },
+  "adaptive_branching":{
+    "performance_inputs_used":false,
+    "process_cost_proxy_only":true,
+    "child_assignments_by_branch_factor":{"8":38,"6":33,"4":8}
+  },
+  "handoff_defect":{
+    "type":"evidence_filename_mismatch",
+    "compute_artifact_valid":true,
+    "scientific_impact":"NONE"
+  }
+}
