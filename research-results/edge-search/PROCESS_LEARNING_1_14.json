@@ -1,0 +1,15 @@
+{
+  "process_change_id":"V88-PC-55-SCHEMA-ADAPTIVE-FRONTIER",
+  "prompt_version":"1.14.0",
+  "logic_to_code_ratio":1.0,
+  "compute_without_connector_intervention_fraction":1.0,
+  "recursive_generation_yield":{"0":4,"1":24,"2":55},
+  "candidate_coverage_gain_per_compute_second":"MEASURE_NEXT_CYCLE",
+  "adaptive_branch_factor_child_assignments":{"8":38,"6":33,"4":8},
+  "schema_adapter_regression_catch_rate":"1.0_for_observed_header_variation",
+  "frontier_remaining":0,
+  "duplicate_candidates_rejected":0,
+  "scientific_claim":false,
+  "handoff_defect":"evidence_filename_mismatch",
+  "scientific_impact":"NONE"
+}
