@@ -47,5 +47,7 @@
   "execution_status": "EXECUTION_REQUESTED_PR",
   "execution_trigger": "PULL_REQUEST_24",
   "trigger_reason": "Activate preregistered Cycle3 empirical research",
-  "prereq_topology_version": "1.8.2"
+  "prereq_topology_version": "1.8.2",
+  "execution_fix_revision": 1,
+  "execution_fix_reason": "Repair acquisition manifest serialization only"
 }
