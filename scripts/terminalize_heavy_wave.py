@@ -143,13 +143,16 @@ def main() -> int:
 
     feature_records = []
     for feature in features:
-        for key in ("feature_id", "path", "sha256", "transform_code_sha256", "source_input_ids"):
+        for key in ("feature_id", "path", "sha256", "transform_code_path", "transform_code_sha256", "source_input_ids"):
             if key not in feature:
                 raise SystemExit(f"SCHEMA_FAILURE: feature missing {key}: {feature.get('feature_id')}")
         rel = rel_file(root, root / str(feature["path"]))
+        transform_rel = rel_file(root, root / str(feature["transform_code_path"]))
         require_digest(root, rel, str(feature["sha256"]), "feature artifact")
+        require_digest(root, transform_rel, str(feature["transform_code_sha256"]), "feature transform code")
         add_result(rel, str(feature["sha256"]))
-        feature_records.append({**feature, "path": rel})
+        add_result(transform_rel, str(feature["transform_code_sha256"]))
+        feature_records.append({**feature, "path": rel, "transform_code_path": transform_rel})
 
     expected_candidates = set(candidate_set)
     observed_candidates: list[str] = []
