@@ -1,0 +1,36 @@
+name: V88 v1.5 Practicality-First Execution
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  execute:
+    if: github.repository == 'takenthatusernameis-collab/scientific-agent-skills' && github.event.pull_request.head.ref == 'chatgpt/v88-v1.5-execution-20260929'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - name: Acquire real-world dataset
+        run: git clone --depth 1 https://github.com/Speirsy11/crypto-dataset.git data_source
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check --no-input pyyaml pandas numpy pyarrow
+      - name: Run V88 v1.5 practical process
+        run: python scratch/chatgpt_v88/v15_execution.py
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v88-v1.5-results
+          path: scratch/chatgpt_v88/v15_results/
+          if-no-files-found: error
+          retention-days: 1
