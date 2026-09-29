@@ -44,6 +44,38 @@ jobs:
           path: scratch/chatgpt_v88/deep_edge_117/features
           retention-days: 7
           if-no-files-found: error
+      - name: Capture immutable provenance inventory
+        run: |
+          set -euo pipefail
+          cd scratch/chatgpt_v88/deep_edge_117
+          find raw data plan inputs features -type f -print0 | sort -z | xargs -0 sha256sum > PROVENANCE_FILE_HASHES.sha256
+          find raw data plan inputs features -type f -printf '%p	%s\n' | sort > PROVENANCE_FILE_SIZES.tsv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-raw
+          path: scratch/chatgpt_v88/deep_edge_117/raw
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-data
+          path: scratch/chatgpt_v88/deep_edge_117/data
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-plan
+          path: scratch/chatgpt_v88/deep_edge_117/plan
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-17-provenance-inventory
+          path: |
+            scratch/chatgpt_v88/deep_edge_117/PROVENANCE_FILE_HASHES.sha256
+            scratch/chatgpt_v88/deep_edge_117/PROVENANCE_FILE_SIZES.tsv
+          retention-days: 7
+          if-no-files-found: error
 
   stage1:
     needs: prepare
@@ -72,6 +104,10 @@ jobs:
         with:
           name: v88-1-17-features
           path: scratch/chatgpt_v88/deep_edge_117/features
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-17-plan
+          path: scratch/chatgpt_v88/deep_edge_117/plan
       - run: python scratch/chatgpt_v88/deep_edge_117/stage1_worker.py
         env:
           SHARD_ID: ${{ matrix.shard_id }}
