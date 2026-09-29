@@ -1,39 +1,133 @@
-name: V88 1.13.0 Recursive Real-Data Canary
+name: V88 1.16.0 GitHub Compute Fabric Acceptance
 on:
   push:
     branches:
       - chatgpt/v88-1-13-0-recursive-realdata-20260929
+  workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: v88-1-13-0-recursive-realdata
+  group: v88-1-16-fabric-${{ github.ref_name }}
   cancel-in-progress: false
 jobs:
-  recursive_canary:
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install --disable-pip-version-check --no-input pandas pyarrow numpy
-      - run: python scratch/chatgpt_v88/recursive_113/recursive_canary.py
+          cache: pip
+          cache-dependency-path: requirements-v88-github-fabric.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-github-fabric.txt
+      - run: python -m py_compile scratch/chatgpt_v88/github_fabric_116/*.py
+      - run: python scratch/chatgpt_v88/github_fabric_116/fabric_prepare.py
         env:
-          V88_PROMPT_VERSION: "1.14.0"
-          V88_PROMPT_SHA: "13bf568b1af894fbcb118090890eff466e7f1764"
+          EXPERIMENT_ID: V88-1-16-GITHUB-COMPUTE-FABRIC-CANARY
       - uses: actions/upload-artifact@v4
         with:
-          name: v88-1-13-recursive-canary
-          path: scratch/chatgpt_v88/recursive_113
+          name: v88-1-16-inputs
+          path: scratch/chatgpt_v88/github_fabric_116/inputs
+          retention-days: 7
+
+  plan:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-github-fabric.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-github-fabric.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-16-inputs
+          path: scratch/chatgpt_v88/github_fabric_116/inputs
+      - run: python scratch/chatgpt_v88/github_fabric_116/fabric_plan.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-16-plan
+          path: scratch/chatgpt_v88/github_fabric_116/plan
+          retention-days: 7
+
+  shard:
+    needs: [prepare, plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard_id: [0,1,2,3,4,5,6,7]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-github-fabric.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-github-fabric.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-16-inputs
+          path: scratch/chatgpt_v88/github_fabric_116/inputs
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-16-plan
+          path: scratch/chatgpt_v88/github_fabric_116/plan
+      - run: python scratch/chatgpt_v88/github_fabric_116/fabric_worker.py --shard-id "${{ matrix.shard_id }}"
+        env:
+          EXPERIMENT_ID: V88-1-16-GITHUB-COMPUTE-FABRIC-CANARY
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: v88-1-16-shard-${{ matrix.shard_id }}
+          path: scratch/chatgpt_v88/github_fabric_116/shards/${{ matrix.shard_id }}
           retention-days: 7
           if-no-files-found: error
-      - name: Persist evidence without retriggering
-        run: |
-          cp scratch/chatgpt_v88/recursive_113/V88_1_14_RECURSIVE_CANARY_SUMMARY.json research-results/edge-search/V88_1_14_RECURSIVE_CANARY_SUMMARY.json
-          cp scratch/chatgpt_v88/recursive_113/PROCESS_LEARNING_1_14.json research-results/edge-search/PROCESS_LEARNING_1_14.json
-          git config user.name "v88-1-13-canary"
-          git config user.email "v88-1-13-canary@users.noreply.github.com"
-          git add research-results/edge-search/V88_1_14_RECURSIVE_CANARY_SUMMARY.json research-results/edge-search/PROCESS_LEARNING_1_14.json
-          git commit -m "V88 1.14.0: fix evidence handoff filenames [skip ci]" || true
-          git push origin HEAD:$GITHUB_REF_NAME
+
+  reduce:
+    needs: [prepare, plan, shard]
+    if: ${{ always() && needs.shard.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-v88-github-fabric.txt
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-github-fabric.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-16-inputs
+          path: scratch/chatgpt_v88/github_fabric_116/inputs
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-16-plan
+          path: scratch/chatgpt_v88/github_fabric_116/plan
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-1-16-shard-*
+          path: scratch/chatgpt_v88/github_fabric_116/shards
+      - run: python scratch/chatgpt_v88/github_fabric_116/fabric_reduce.py
+        env:
+          EXPERIMENT_ID: V88-1-16-GITHUB-COMPUTE-FABRIC-CANARY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-16-final-evidence
+          path: scratch/chatgpt_v88/github_fabric_116/FINAL_SUMMARY.json
+          retention-days: 7
