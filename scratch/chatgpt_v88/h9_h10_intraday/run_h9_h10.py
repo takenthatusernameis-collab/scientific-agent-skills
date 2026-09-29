@@ -4,8 +4,9 @@ import numpy as np,pandas as pd
 
 R=Path(__file__).resolve().parent
 DATA=R/"h9_h10_data"
-if not any(DATA.glob("*.csv.gz")) and (DATA/"h3_data").exists():
-    DATA=DATA/"h3_data"
+_candidates=list(DATA.glob("**/BTCUSDT.csv.gz"))
+if _candidates:
+    DATA=_candidates[0].parent
 
 SYMBOLS=["BTCUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","APTUSDT","ARBUSDT","ATOMUSDT","AVAXUSDT","BCHUSDT","BNBUSDT","CRVUSDT","DOGEUSDT","DOTUSDT","ETCUSDT","ETHUSDT","FILUSDT","HBARUSDT","ICPUSDT","INJUSDT","LINKUSDT","LTCUSDT","MKRUSDT","NEARUSDT","OPUSDT","RUNEUSDT","SEIUSDT","SOLUSDT","STXUSDT","SUIUSDT","TRXUSDT","UNIUSDT","XLMUSDT","XRPUSDT"]
 ALT=SYMBOLS[1:]
