@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: v88-cycle5-h24-h27
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -91,7 +95,7 @@ jobs:
           rows=[json.load(open(f)) for f in files]
           if any(r.get("status") != "VALIDATION_COMPLETE" for r in rows):
             raise SystemExit("INFRASTRUCTURE_FAILURE: at least one worker did not reach VALIDATION_COMPLETE")
-          out={"experiment_id":"V88-CYCLE5-H24-H27","prompt_version":"1.9.5","validation_results":rows,"oos_seen":False,"holdout_seen":False,"selection_firewall":"No OOS promotion in this wave."}
+          out={"experiment_id":"V88-CYCLE5-H24-H27","prompt_version":"1.9.6","validation_results":rows,"oos_seen":False,"holdout_seen":False,"selection_firewall":"No OOS promotion in this wave."}
           pathlib.Path("summary.json").write_text(json.dumps(out,indent=2)+"\n")
           print(json.dumps(out,indent=2))
           PY
