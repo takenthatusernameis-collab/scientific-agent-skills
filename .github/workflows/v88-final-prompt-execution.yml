@@ -30,7 +30,7 @@ jobs:
       - name: Install real-data execution dependencies
         run: python -m pip install --disable-pip-version-check --no-input pyyaml numpy pandas vectorbt ccxt
 
-      - name: Apply deterministic H1 archive parser patch
+      - name: Apply deterministic H1 archive parser patch (timestamp-safe)
         run: python scratch/chatgpt_v88/final_release/apply_h1_parser_patch.py
 
       - name: Execute V88 Cycle 2 H1 against real Binance data
