@@ -1,4 +1,4 @@
-name: V88 Final Prompt Execution
+name: V88 Continuous Empirical H1 Execution
 
 on:
   pull_request:
@@ -9,14 +9,14 @@ permissions:
   contents: read
 
 jobs:
-  execute-final-v12:
+  execute-h1-real:
     if: >-
       github.repository == 'takenthatusernameis-collab/scientific-agent-skills' &&
       github.event.pull_request.head.ref == 'chatgpt/v88-final-prompt-execute-20260929'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
-      - name: Checkout final prompt branch
+      - name: Checkout registered H1 experiment
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -27,17 +27,17 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install execution dependencies
-        run: python -m pip install --disable-pip-version-check --no-input pyyaml numpy
+      - name: Install real-data execution dependencies
+        run: python -m pip install --disable-pip-version-check --no-input pyyaml numpy pandas vectorbt
 
-      - name: Execute frozen V88 v1.2.0 prompt
-        run: python scratch/chatgpt_v88/final_release/execute_final_prompt.py
+      - name: Execute V88 Cycle 2 H1 against real Binance data
+        run: python scratch/chatgpt_v88/final_release/run_h1_real.py
 
-      - name: Upload final execution evidence
+      - name: Upload H1 empirical evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v88-final-prompt-execution
+          name: v88-cycle2-h1-real
           path: scratch/chatgpt_v88/final_release/
           if-no-files-found: error
           retention-days: 1
