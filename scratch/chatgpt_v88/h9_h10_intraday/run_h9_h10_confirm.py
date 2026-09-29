@@ -37,7 +37,11 @@ def run_confirm(h,data_root):
     out["verified_edge"]=bool(out["oos_gate"] and out["holdout_gate"])
     out["validation_seen"]=False
     out["sibling_oos_seen"]=False
-    p=data_root/"results"; p.mkdir(parents=True,exist_ok=True)
+    p=Path(data_root)
+    candidates=list(p.glob("**/BTCUSDT.csv.gz"))
+    if candidates:
+        p=candidates[0].parent
+    p=p/"results"; p.mkdir(parents=True,exist_ok=True)
     (p/"H9_H10_CONFIRMATORY.json").write_text(json.dumps(out,indent=2,default=str)+"
 ")
     print(json.dumps(out,indent=2))
