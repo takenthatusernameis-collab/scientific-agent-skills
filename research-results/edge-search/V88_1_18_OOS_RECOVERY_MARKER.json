@@ -1,0 +1,12 @@
+{
+  "launch_type": "OOS_RECOVERY_FROM_FROZEN_ROBUSTNESS_V1",
+  "launch_id": "V88-1-18-OOS-RECOVERY-PR-20260929",
+  "source_run_id": 36539347437,
+  "scientific_search_rerun": false,
+  "robustness_reduction": "repaired_from_16_immutable_shards",
+  "expected_robustness_input_count": 43,
+  "expected_robustness_pass_count": 3,
+  "oos_stage": "preregistered_2025_calendar_year",
+  "selection_frozen_before_oos": true,
+  "holdout_selection_forbidden": true
+}
