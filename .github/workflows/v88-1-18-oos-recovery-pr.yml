@@ -1,0 +1,202 @@
+name: V88 OOS Recovery From Frozen Robustness Artifacts
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: v88-1-18-oos-recovery
+  cancel-in-progress: true
+
+env:
+  SOURCE_REPO: takenthatusernameis-collab/scientific-agent-skills
+  SOURCE_RUN_ID: "36539347437"
+  INPUT_ARTIFACT_ID: "11019369619"
+  FEATURE_ARTIFACT_ID: "11020306049"
+  ROBUSTNESS_ARTIFACT_IDS: "11019684775,11019534946,11019564623,11019504746,11019464714,11019499476,11020256076,11019844259,11019868914,11019744631,11019749545,11019819260,11020171143,11020385829,11020311077,11020725014"
+
+jobs:
+  repair_freeze_stage2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e017def380f7aa536b1eb574b483a1afd3c72e10
+          fetch-depth: 1
+          sparse-checkout: |
+            requirements-v88-deep-edge-118.txt
+            scratch/chatgpt_v88/deep_edge_117
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-118.txt
+      - name: Download exact frozen inputs
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ env.SOURCE_REPO }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          artifact-ids: ${{ env.INPUT_ARTIFACT_ID }}
+          path: scratch/chatgpt_v88/deep_edge_117/input_artifact
+      - name: Download exact frozen features
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ env.SOURCE_REPO }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          artifact-ids: ${{ env.FEATURE_ARTIFACT_ID }}
+          path: scratch/chatgpt_v88/deep_edge_117/features
+      - name: Download all exact robustness shards
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ env.SOURCE_REPO }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          artifact-ids: ${{ env.ROBUSTNESS_ARTIFACT_IDS }}
+          path: scratch/chatgpt_v88/deep_edge_117/robustness_artifacts
+          merge-multiple: true
+      - name: Normalize immutable inputs
+        run: |
+          set -euo pipefail
+          mkdir -p scratch/chatgpt_v88/deep_edge_117/inputs
+          find scratch/chatgpt_v88/deep_edge_117/input_artifact -type f -name 'DATA_MANIFEST.json' -exec cp {} scratch/chatgpt_v88/deep_edge_117/inputs/DATA_MANIFEST.json \;
+          find scratch/chatgpt_v88/deep_edge_117/input_artifact -type f -name 'WAVE_MANIFEST.json' -exec cp {} scratch/chatgpt_v88/deep_edge_117/inputs/WAVE_MANIFEST.json \;
+          find scratch/chatgpt_v88/deep_edge_117/input_artifact -type f -name 'candidate_matrix.json' -exec cp {} scratch/chatgpt_v88/deep_edge_117/inputs/candidate_matrix.json \;
+          find scratch/chatgpt_v88/deep_edge_117/input_artifact -type f -name 'stage1_matrix.json' -exec cp {} scratch/chatgpt_v88/deep_edge_117/inputs/stage1_matrix.json \;
+          mapfile -t fs < <(find scratch/chatgpt_v88/deep_edge_117/features -type f -name FEATURES.parquet)
+          test "${#fs[@]}" -eq 1
+          mkdir -p scratch/chatgpt_v88/deep_edge_117/features
+          cp "${fs[0]}" scratch/chatgpt_v88/deep_edge_117/features/FEATURES.parquet
+          rm -rf scratch/chatgpt_v88/deep_edge_117/robustness
+          mkdir -p scratch/chatgpt_v88/deep_edge_117/robustness
+          mapfile -t shards < <(find scratch/chatgpt_v88/deep_edge_117/robustness_artifacts -type f -name 'shard_*.json' | sort)
+          test "${#shards[@]}" -eq 16
+          for f in "${shards[@]}"; do cp "$f" scratch/chatgpt_v88/deep_edge_117/robustness/; done
+          test "$(find scratch/chatgpt_v88/deep_edge_117/robustness -type f -name 'shard_*.json' | wc -l)" -eq 16
+      - name: Verify frozen identity and reduce robustness
+        run: |
+          set -euo pipefail
+          python scratch/chatgpt_v88/deep_edge_117/robustness_reduce.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=Path("scratch/chatgpt_v88/deep_edge_117")
+          w=json.loads((r/"inputs/WAVE_MANIFEST.json").read_text())
+          f=json.loads((r/"freeze_stage2.json").read_text())
+          assert w["prompt_version"]=="1.18.9"
+          assert w["candidate_count"]==4096
+          assert w["holdout_selection_forbidden"] is True
+          assert f["input_count"]==43
+          assert f["pass_count"]==3
+          assert len(f["oos_candidates"])==3
+          print(json.dumps({"status":"PASS","robustness_input_count":f["input_count"],"robustness_pass_count":f["pass_count"],"oos_candidates":len(f["oos_candidates"])}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-18-freeze2-repaired
+          path: scratch/chatgpt_v88/deep_edge_117/freeze_stage2.json
+          retention-days: 14
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-18-audit-inputs-repaired
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+          retention-days: 14
+          if-no-files-found: error
+
+  oos:
+    needs: repair_freeze_stage2
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard_id: [0,1,2,3,4,5,6,7]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e017def380f7aa536b1eb574b483a1afd3c72e10
+          fetch-depth: 1
+          sparse-checkout: |
+            requirements-v88-deep-edge-118.txt
+            scratch/chatgpt_v88/deep_edge_117
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-118.txt
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          name: v88-1-18-features
+          repository: ${{ env.SOURCE_REPO }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          path: scratch/chatgpt_v88/deep_edge_117/features
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-18-inputs
+          repository: ${{ env.SOURCE_REPO }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-1-18-freeze2-repaired
+          path: scratch/chatgpt_v88/deep_edge_117
+      - name: Run exact preregistered OOS worker
+        run: python scratch/chatgpt_v88/deep_edge_117/oos_worker.py
+        env:
+          SHARD_ID: ${{ matrix.shard_id }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: v88-1-18-oos-repaired-${{ matrix.shard_id }}
+          path: scratch/chatgpt_v88/deep_edge_117/oos/shard_${{ matrix.shard_id }}.json
+          retention-days: 14
+          if-no-files-found: error
+
+  oos_reduce:
+    needs: oos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e017def380f7aa536b1eb574b483a1afd3c72e10
+          fetch-depth: 1
+          sparse-checkout: |
+            requirements-v88-deep-edge-118.txt
+            scratch/chatgpt_v88/deep_edge_117
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-118.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-1-18-oos-repaired-*
+          path: scratch/chatgpt_v88/deep_edge_117/oos
+          merge-multiple: true
+      - name: Reduce repaired OOS evidence
+        run: |
+          set -euo pipefail
+          python scratch/chatgpt_v88/deep_edge_117/oos_reduce.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("scratch/chatgpt_v88/deep_edge_117/freeze_oos.json")
+          x=json.loads(p.read_text())
+          assert x["input_count"]==3
+          assert x["holdout_seen"] is False
+          print(json.dumps({"status":"PASS","oos_input_count":x["input_count"],"oos_pass_count":x["pass_count"],"holdout_candidates":len(x["holdout_candidates"])}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-18-freeze-oos-repaired
+          path: scratch/chatgpt_v88/deep_edge_117/freeze_oos.json
+          retention-days: 14
+          if-no-files-found: error
