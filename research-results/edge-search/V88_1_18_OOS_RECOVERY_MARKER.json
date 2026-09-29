@@ -8,5 +8,7 @@
   "expected_robustness_pass_count": 3,
   "oos_stage": "preregistered_2025_calendar_year",
   "selection_frozen_before_oos": true,
-  "holdout_selection_forbidden": true
+  "holdout_selection_forbidden": true,
+  "execution_revision": 1,
+  "execution_note": "retrigger_after_cross_run_artifact_id_fix"
 }
