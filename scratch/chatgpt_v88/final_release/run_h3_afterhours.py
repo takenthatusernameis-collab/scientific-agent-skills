@@ -144,21 +144,16 @@ def run_worker():
         for d in val_days+oos_days+hold_days:
             g,n=day_trade(bars,daily,d,*cfg)
             cache[(cfg,d)]=(g,n)
-    records=[]
-    for i,d in enumerate(val_days):
-        if i<INITIAL_TRAIN: continue
-        candidates=[]
-        train=val_days[:i]
-        for cfg in cfgs:
-            x=[cache[(cfg,t)][1] for t in train if np.isfinite(cache[(cfg,t)][1])]
-            m=metrics(x); score=m["Sharpe"] if np.isfinite(m["Sharpe"]) else -np.inf
-            candidates.append((score,m["mean"],cfg))
-        candidates.sort(key=lambda z:(z[0],z[1]),reverse=True)
-        sel=candidates[0][2]
-        records.append((d,sel,cache[(sel,d)][1]))
-    v=metrics([r[2] for r in records])
-    best_cfg=records[-1][1] if records else cfgs[0]
-    # confirmatory is fixed config selected using validation-only final training state
+    scored=[]
+    train_days=val_days[INITIAL_TRAIN:]
+    for cfg in cfgs:
+        vals=[cache[(cfg,d)][1] for d in train_days if np.isfinite(cache[(cfg,d)][1])]
+        m=metrics(vals)
+        score=m["Sharpe"] if np.isfinite(m["Sharpe"]) else -np.inf
+        scored.append((score,m["mean"],m["PF"],cfg))
+    scored.sort(key=lambda z:(z[0],z[1],z[2]),reverse=True)
+    best_cfg=scored[0][3] if scored else cfgs[0]
+    v=metrics([cache[(best_cfg,d)][1] for d in train_days if np.isfinite(cache[(best_cfg,d)][1])])
     oos=[cache[(best_cfg,d)][1] for d in oos_days if np.isfinite(cache[(best_cfg,d)][1])]
     hold=[cache[(best_cfg,d)][1] for d in hold_days if np.isfinite(cache[(best_cfg,d)][1])]
     out={"beta_window":beta_win,"validation":v,"selected_config":{"shock_threshold":best_cfg[0],"n_quantiles":best_cfg[1],"exit":best_cfg[2],"beta_window":best_cfg[3]},"oos_preview":metrics(oos),"holdout_preview":metrics(hold)}
