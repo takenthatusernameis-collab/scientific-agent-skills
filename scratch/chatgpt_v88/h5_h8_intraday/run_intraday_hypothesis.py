@@ -6,6 +6,8 @@ import pandas as pd
 
 R = Path(__file__).resolve().parent
 DATA = R / "h5_data"
+if not any(DATA.glob("*.csv.gz")) and (DATA / "h3_data").exists():
+    DATA = DATA / "h3_data"
 
 SYMBOLS = [
     "BTCUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","APTUSDT","ARBUSDT","ATOMUSDT",
@@ -159,9 +161,11 @@ def trade_return(panel, idx, i, signal):
 
 def run(hypothesis):
     frames, hashes = load_data()
+    # Validation workers are physically cut off at the fresh validation endpoint.
+    frames = {s: df.loc[df.index <= VAL_END].copy() for s, df in frames.items()}
     panel = build_bar_panel(frames)
     ret = bar_returns(panel)
-    idx = eligible_day_index(ret)
+    idx = ret.index[(ret.index >= VAL_START - pd.Timedelta(days=2)) & (ret.index <= VAL_END)]
     trades = []
     next_free = 0
     for i in range(len(idx) - HOLD_BARS - 2):
