@@ -1,6 +1,6 @@
 {
   "experiment_id": "V88-CYCLE5-H24-H27",
-  "prompt_version": "1.9.5",
+  "prompt_version": "1.9.6",
   "validation_results": [
     {
       "experiment_id": "V88-CYCLE5-H24-H27",
@@ -26,10 +26,10 @@
       "cost_model": {
         "round_trip": 0.0021
       },
-      "data_manifest_sha256": "4389135f955f420746bbc834eb2ff8336cd5125e53d9a8202a7ba7a3dcfabd45",
+      "data_manifest_sha256": "2074216f424b1ddebc0cf9f6cff7290059249af042ff5670d13d6139315726be",
       "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
-      "code_sha": "03e9e2c96bc82a89143606997fd6425f66b85c95",
-      "workflow_run_id": "36518289550",
+      "code_sha": "5d9dfffc6ba83351e5de9613c5a9dd5472cf9f35",
+      "workflow_run_id": "36519320568",
       "evidence_stage": "VALIDATION"
     },
     {
@@ -56,10 +56,10 @@
       "cost_model": {
         "round_trip": 0.0021
       },
-      "data_manifest_sha256": "4389135f955f420746bbc834eb2ff8336cd5125e53d9a8202a7ba7a3dcfabd45",
+      "data_manifest_sha256": "2074216f424b1ddebc0cf9f6cff7290059249af042ff5670d13d6139315726be",
       "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
-      "code_sha": "03e9e2c96bc82a89143606997fd6425f66b85c95",
-      "workflow_run_id": "36518289550",
+      "code_sha": "5d9dfffc6ba83351e5de9613c5a9dd5472cf9f35",
+      "workflow_run_id": "36519320568",
       "evidence_stage": "VALIDATION"
     },
     {
@@ -86,10 +86,10 @@
       "cost_model": {
         "round_trip": 0.0021
       },
-      "data_manifest_sha256": "4389135f955f420746bbc834eb2ff8336cd5125e53d9a8202a7ba7a3dcfabd45",
+      "data_manifest_sha256": "2074216f424b1ddebc0cf9f6cff7290059249af042ff5670d13d6139315726be",
       "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
-      "code_sha": "03e9e2c96bc82a89143606997fd6425f66b85c95",
-      "workflow_run_id": "36518289550",
+      "code_sha": "5d9dfffc6ba83351e5de9613c5a9dd5472cf9f35",
+      "workflow_run_id": "36519320568",
       "evidence_stage": "VALIDATION"
     },
     {
@@ -116,10 +116,10 @@
       "cost_model": {
         "round_trip": 0.0021
       },
-      "data_manifest_sha256": "4389135f955f420746bbc834eb2ff8336cd5125e53d9a8202a7ba7a3dcfabd45",
+      "data_manifest_sha256": "2074216f424b1ddebc0cf9f6cff7290059249af042ff5670d13d6139315726be",
       "prompt_sha": "8a8cb933efa45236916cc8a3989e097e0de3856b",
-      "code_sha": "03e9e2c96bc82a89143606997fd6425f66b85c95",
-      "workflow_run_id": "36518289550",
+      "code_sha": "5d9dfffc6ba83351e5de9613c5a9dd5472cf9f35",
+      "workflow_run_id": "36519320568",
       "evidence_stage": "VALIDATION"
     }
   ],
