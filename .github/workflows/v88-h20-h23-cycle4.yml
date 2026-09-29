@@ -49,7 +49,8 @@ jobs:
         run: python scratch/chatgpt_v88/h20_h23/readiness_canary.py
 
   validation:
-    needs: readiness-canary    strategy:
+    needs: readiness-canary
+    strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
@@ -115,7 +116,7 @@ jobs:
               for r in rows],
             "classes":sorted(classes),"information_sources":sorted(sources),
             "position_constructions":sorted(constructions),"data_domains":sorted(domains),
-            "oos_seen":False,"prompt_version":"1.8.8"
+            "oos_seen":False,"prompt_version":"1.9.1"
           }
           if not eligible:
               summary["family_status"]="H20_H23_NO_VALIDATION_ELIGIBLE_CONFIGURATION"
