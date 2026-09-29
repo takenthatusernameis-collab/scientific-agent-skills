@@ -32,7 +32,7 @@ def frame_hash(df):
     x=df.sort_index()
     cols=sorted(map(str,x.columns)); x=x[cols]
     payload={
-        "index":[v.isoformat() for v in x.index],
+        "index":[v.isoformat() if hasattr(v,"isoformat") else str(v) for v in x.index],
         "columns":cols,
         "dtypes":[str(x[c].dtype) for c in cols],
         "values":{c:[None if pd.isna(v) else float(v) for v in x[c].tolist()] for c in cols}
