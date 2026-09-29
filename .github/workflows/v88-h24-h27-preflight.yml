@@ -1,0 +1,61 @@
+name: V88 H24-H27 Data Route Preflight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "research-results/edge-search/V88_CYCLE5_H24_H27_PREFLIGHT.json"
+
+permissions:
+  contents: write
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input "binance-vision"
+      - name: Probe official historical routes without computing performance
+        run: |
+          python - <<'PY'
+          import json, pathlib, importlib.metadata
+          from binance_vision import fetch_data
+
+          checks=[]
+          for dtype in ["metrics","bookDepth"]:
+              try:
+                  r=fetch_data("BTCUSDT","2023-01-01","2023-01-03",market="usdm",data_type=dtype,output_format="csv")
+                  checks.append({
+                    "data_type":dtype,
+                    "status":"AVAILABLE" if len(r.data)>0 else "EMPTY",
+                    "rows":int(len(r.data)),
+                    "missing":[str(x) for x in getattr(r,"missing",[])],
+                    "failed":[str(x) for x in getattr(r,"failed",[])]
+                  })
+              except Exception as e:
+                  checks.append({"data_type":dtype,"status":"ERROR","error":repr(e)})
+          out={
+            "preflight_only":True,
+            "scientific_results":False,
+            "package":"binance-vision",
+            "package_version":importlib.metadata.version("binance-vision"),
+            "checks":checks
+          }
+          pathlib.Path("research-results/edge-search").mkdir(parents=True,exist_ok=True)
+          pathlib.Path("research-results/edge-search/V88_CYCLE5_H24_H27_PREFLIGHT_RESULT.json").write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          PY
+      - name: Commit preflight evidence
+        run: |
+          git config user.name "v88-preflight"
+          git config user.email "v88-preflight@users.noreply.github.com"
+          git add research-results/edge-search/V88_CYCLE5_H24_H27_PREFLIGHT_RESULT.json
+          git commit -m "V88 Cycle5: record data route preflight" || exit 0
+          git push origin HEAD:main
