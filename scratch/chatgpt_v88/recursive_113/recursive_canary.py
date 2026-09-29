@@ -16,8 +16,9 @@ SYMS=["BTCUSDT","ETHUSDT","SOLUSDT"]
 MONTHS=pd.date_range("2023-01-01","2023-06-01",freq="MS",tz="UTC")
 ROUND_TRIP_COST=0.0010
 MAX_GENERATIONS=3
-MAX_CANDIDATES=256
+MAX_CANDIDATES=160
 PER_PARENT_CHILDREN=8
+ADAPTER_VERSION="1.14.0"
 
 ROOT_CANDIDATES=[
     {"mechanism":"time_series_momentum","lookback":12,"representation":"level","holding_bars":1,"state":"all"},
@@ -27,7 +28,7 @@ ROOT_CANDIDATES=[
 ]
 
 def get(url):
-    req=urllib.request.Request(url,headers={"User-Agent":"V88-1.13-realdata-canary/1.0"})
+    req=urllib.request.Request(url,headers={"User-Agent":"V88-1.14-schema-adaptive-canary/1.0"})
     with urllib.request.urlopen(req,timeout=90) as r:
         return r.read()
 
@@ -40,19 +41,35 @@ def load_symbol(sym):
             names=[n for n in z.namelist() if n.endswith(".csv")]
             if not names: raise RuntimeError(f"NO_CSV {sym} {m}")
             d=pd.read_csv(z.open(names[0]),header=None)
-        if str(d.iloc[0,0]).strip().lower() in {"open_time","open time"}:
+        header_detected=str(d.iloc[0,0]).strip().lower() in {"open_time","open time"}
+        if header_detected:
             d=d.iloc[1:].reset_index(drop=True)
+        if d.shape[1] < 6:
+            raise RuntimeError(f"SCHEMA_TOO_FEW_COLUMNS {sym} {m} cols={d.shape[1]}")
         d=d.iloc[:,[0,4,5]].copy()
         d.columns=["timestamp","close","volume"]
-        d["timestamp"]=pd.to_datetime(pd.to_numeric(d["timestamp"]),unit="ms",utc=True)
+        d["timestamp"]=pd.to_datetime(pd.to_numeric(d["timestamp"],errors="coerce"),unit="ms",utc=True)
         d["close"]=pd.to_numeric(d["close"],errors="coerce")
         d["volume"]=pd.to_numeric(d["volume"],errors="coerce")
+        if d["timestamp"].isna().any() or d["close"].isna().any() or d["volume"].isna().any():
+            raise RuntimeError(f"SCHEMA_NUMERIC_VALIDATION_FAILURE {sym} {m}")
         frames.append(d)
     d=pd.concat(frames,ignore_index=True).drop_duplicates("timestamp").sort_values("timestamp")
     d=d[(d.timestamp>=pd.Timestamp(START,tz="UTC"))&(d.timestamp<=pd.Timestamp(END,tz="UTC"))]
+    if not d.timestamp.is_monotonic_increasing:
+        raise RuntimeError(f"SCHEMA_TIMESTAMP_ORDER_FAILURE {sym}")
+    if d.timestamp.duplicated().any():
+        d=d.drop_duplicates("timestamp").sort_values("timestamp")
     p=DATA/f"{sym}_1h.parquet"
     d.to_parquet(p,index=False)
-    return {"rows":len(d),"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
+    schema_fingerprint=hashlib.sha256(json.dumps({
+        "adapter_version":ADAPTER_VERSION,
+        "normalized_roles":["timestamp","close","volume"],
+        "rows":len(d),
+        "header_normalization":"enabled"
+    },sort_keys=True).encode()).hexdigest()
+    return {"rows":len(d),"sha256":hashlib.sha256(p.read_bytes()).hexdigest(),
+            "schema_fingerprint":schema_fingerprint,"adapter_version":ADAPTER_VERSION}
 
 def load_data():
     manifest={}
@@ -128,14 +145,22 @@ def canonical(c):
 def cid(c):
     return hashlib.sha256(canonical(c).encode()).hexdigest()[:16]
 
+def branch_factor(parent):
+    # Frozen process/coverage signals only: deterministic compute-cost proxy, no performance.
+    cost=int(parent["lookback"])+2*int(parent["holding_bars"])
+    if cost <= 18:
+        return 8, "CHEAP_HIGH_REUSE"
+    if cost <= 36:
+        return 6, "MEDIUM_COST"
+    return 4, "HIGH_COST"
+    
 def children(parent,generation):
     p=dict(parent)
+    factor,reason=branch_factor(p)
     out=[]
-    # deterministic local neighborhood
     for dl in (-8,-4,4,8):
         q=dict(p); q["lookback"]=max(6,int(p["lookback"])+dl)
         out.append(("LOCAL_NEIGHBORHOOD",q))
-    # orthogonal representations / states
     q=dict(p); q["representation"]="zscore" if p["representation"]=="level" else "level"
     out.append(("ORTHOGONAL_REPRESENTATION",q))
     q=dict(p); q["state"]="trend" if p["state"]=="all" else "all"
@@ -144,13 +169,12 @@ def children(parent,generation):
     out.append(("HORIZON_NEIGHBOR",q))
     q=dict(p); q["lookback"]=max(6,int(p["lookback"])+12)
     out.append(("COVERAGE_GAP_FILL",q))
-    # stable ordering, deterministic de-duplication
     seen=set(); ret=[]
     for op,q in out:
         k=canonical(q)
         if k not in seen:
             seen.add(k); ret.append((op,q))
-    return ret[:PER_PARENT_CHILDREN]
+    return ret[:min(factor,PER_PARENT_CHILDREN)],reason,factor
 
 data, data_manifest = load_data()
 data_root=hashlib.sha256(json.dumps(data_manifest,sort_keys=True).encode()).hexdigest()
@@ -205,14 +229,16 @@ while queue and processed < MAX_CANDIDATES:
     generation_counts[gen]=generation_counts.get(gen,0)+1
 
     if gen < MAX_GENERATIONS-1 and processed < MAX_CANDIDATES:
-        for op,q in children(c,gen):
+        child_specs,branch_reason,branch_factor_value=children(c,gen)
+        for op,q in child_specs:
             child_id=cid(q)
             if child_id in seen:
                 continue
             seen.add(child_id)
             child={"candidate_id":child_id,"root_matrix_id":item["root_matrix_id"],
                    "generation_id":gen+1,"parent_candidate_id":item["candidate_id"],
-                   "expansion_operator":op,"spec":q}
+                   "expansion_operator":op,"branch_factor":branch_factor_value,
+                   "branch_reason":branch_reason,"spec":q}
             queue.append(child)
 
 # Persist remaining frontier for continuation; this is deliberately not an automatic infinite loop.
@@ -220,8 +246,8 @@ remaining=list(queue)
 frontier_path.write_text(json.dumps(remaining,indent=2)+"\n")
 
 summary={
-  "prompt_version":"1.13.0",
-  "prompt_execution_mode":"RECURSIVE_DURABLE_FRONTIER_CANARY",
+  "prompt_version":"1.14.0",
+  "prompt_execution_mode":"SCHEMA_RESILIENT_ADAPTIVE_FRONTIER_CANARY",
   "scientific_claim":False,
   "root_candidates":len(ROOT_CANDIDATES),
   "candidates_processed":len(rows),
@@ -229,6 +255,9 @@ summary={
   "frontier_remaining":len(remaining),
   "unique_candidate_ids":len({r["candidate_id"] for r in rows}),
   "duplicate_candidates_rejected":len(seen)-len(rows),
+  "schema_adapter_version":ADAPTER_VERSION,
+  "schema_fingerprints":{s:data_manifest[s].get("schema_fingerprint") for s in SYMS},
+  "adaptive_branching":{"performance_inputs_used":False,"process_cost_proxy_only":True},
   "data_manifest_sha256":data_root,
   "data_manifest":data_manifest,
   "selection_firewall":"No OOS or holdout selection; canary validates execution architecture only.",
@@ -236,10 +265,11 @@ summary={
 }
 (ROOT/"V88_1_13_RECURSIVE_CANARY_SUMMARY.json").write_text(json.dumps(summary,indent=2)+"\n")
 (ROOT/"PROCESS_LEARNING_1_13.json").write_text(json.dumps({
-  "process_change_id":"V88-PC-54-RECURSIVE-LOGIC-FIRST-FABRIC",
+  "process_change_id":"V88-PC-55-SCHEMA-ADAPTIVE-FRONTIER",
   "logic_to_code_ratio":1.0,
   "compute_without_connector_intervention_fraction":1.0,
   "recursive_generation_yield":generation_counts,
+  "adaptive_branch_factor_samples":[r.get("branch_factor") for r in rows if r.get("parent_candidate_id")][:32],
   "frontier_remaining":len(remaining),
   "duplicate_candidates_rejected":len(seen)-len(rows),
   "scientific_claim":False
