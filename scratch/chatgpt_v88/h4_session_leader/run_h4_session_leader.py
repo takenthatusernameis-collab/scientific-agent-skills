@@ -167,8 +167,8 @@ def run_config(df, threshold, exit_label, start, end):
             continue
         try:
             b = pivot.loc[d]
-            btc_0915 = float(b.loc["09:15","BTCUSDT"])
-            btc_0945 = float(b.loc["09:45","BTCUSDT"])
+            btc_0915 = float(b.loc["0915","BTCUSDT"])
+            btc_0945 = float(b.loc["0945","BTCUSDT"])
             btc_ret = btc_0945 / btc_0915 - 1.0
         except Exception:
             continue
@@ -177,7 +177,7 @@ def run_config(df, threshold, exit_label, start, end):
         rel = {}
         for s in ALT_SYMBOLS:
             try:
-                r = float(b.loc["09:45",s]) / float(b.loc["09:15",s]) - 1.0
+                r = float(b.loc["0945",s]) / float(b.loc["0915",s]) - 1.0
                 rel[s] = r - btc_ret
             except Exception:
                 pass
@@ -185,7 +185,7 @@ def run_config(df, threshold, exit_label, start, end):
             continue
         leader = max(rel, key=rel.get)
         try:
-            entry = float(b.loc["09:45",leader])
+            entry = float(b.loc["0945",leader])
             exit_col = EXITS[exit_label].replace(":","")
             exit_px = float(b.loc[exit_col,leader])
         except Exception:
