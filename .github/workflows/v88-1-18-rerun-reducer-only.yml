@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - research-results/edge-search/V88_1_18_REDUCER_TRIGGER.json
 
 permissions:
   contents: read
