@@ -1,0 +1,120 @@
+name: V88 H9-H10 Intraday Momentum Wave
+
+on:
+  push:
+    branches: ["chatgpt/v88-h9-h10-intraday-r2-20260929"]
+
+permissions:
+  contents: read
+
+jobs:
+  validation-screen:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        hypothesis: ["H9","H10"]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h3-data
+          path: scratch/chatgpt_v88/h9_h10_data
+          repository: ${{ github.repository }}
+          run-id: 36507336807
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
+      - name: Run fresh-validation hypothesis
+        env:
+          HYPOTHESIS: ${{ matrix.hypothesis }}
+        run: python scratch/chatgpt_v88/h9_h10_intraday/run_h9_h10.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-h9-h10-validation-${{ matrix.hypothesis }}
+          path: scratch/chatgpt_v88/h9_h10_data/h3_data/results/${{ matrix.hypothesis }}_VALIDATION.json
+          if-no-files-found: error
+          retention-days: 1
+  select-config:
+    needs: validation-screen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-h9-h10-validation-*
+          path: validation-results
+          merge-multiple: true
+      - name: Lock one fresh-validation hypothesis
+        run: |
+          python - <<'PY'
+          import glob,json
+          rows=[json.load(open(fn)) for fn in glob.glob("validation-results/*_VALIDATION.json")]
+          eligible=[r for r in rows if r["validation"]["n"]>=100 and r["validation"]["mean"]>0 and r["validation"]["PF"]>1]
+          if not eligible: raise SystemExit("NO_H9_H10_VALIDATION_ELIGIBLE")
+          eligible.sort(key=lambda r:(r["validation"]["Sharpe"],r["validation"]["mean"],r["validation"]["PF"]),reverse=True)
+          w=eligible[0]
+          json.dump({"family_status":"CONFIRMATORY_HYPOTHESIS_LOCKED","selected_hypothesis":w["hypothesis_id"],"selected_validation":w["validation"],"oos_seen":False,"all_validation":[{"hypothesis_id":r["hypothesis_id"],"validation":r["validation"]} for r in rows]},open("H9_H10_CONFIG_LOCK.json","w"),indent=2)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-h9-h10-config-lock
+          path: H9_H10_CONFIG_LOCK.json
+          if-no-files-found: error
+          retention-days: 1
+  confirmatory:
+    needs: select-config
+    if: ${{ success() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h3-data
+          path: scratch/chatgpt_v88/h9_h10_data
+          repository: ${{ github.repository }}
+          run-id: 36508270456
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h9-h10-config-lock
+          path: .
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
+      - name: Run frozen OOS and independent holdout
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          import importlib.util
+          cfg=json.load(open("H9_H10_CONFIG_LOCK.json"))
+          if cfg.get("family_status")!="CONFIRMATORY_HYPOTHESIS_LOCKED":
+              raise SystemExit("NO_CONFIRMATORY_LOCK")
+          h=cfg["selected_hypothesis"]
+          p=Path("scratch/chatgpt_v88/h9_h10_data/h3_data")
+          if not p.exists():
+              p=Path("scratch/chatgpt_v88/h9_h10_data")
+          os.environ["HYPOTHESIS"]=h
+          spec=importlib.util.spec_from_file_location("h9","scratch/chatgpt_v88/h9_h10_intraday/run_h9_h10_confirm.py")
+          mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+          mod.run_confirm(h,p)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v88-h9-h10-confirmatory
+          path: scratch/chatgpt_v88/h9_h10_data/h3_data/results/H9_H10_CONFIRMATORY.json
+          if-no-files-found: error
+          retention-days: 1
