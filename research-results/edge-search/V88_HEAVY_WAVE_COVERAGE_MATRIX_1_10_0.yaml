@@ -1,0 +1,9 @@
+prompt_version: "1.10.0"
+prompt_sha: "afdff17416601e4f2eba9bca2074ea22c650961a"
+wave_id: "V88-HEAVY-WAVE-COVERAGE-01"
+mode: "DESIGN_ONCE_LAUNCH_ONCE_MONITOR"
+mechanisms: [time_series_momentum,cross_sectional_momentum,cross_sectional_reversal,cross_asset_lead_lag,volatility_regime_transition,breakout_range_expansion,liquidity_order_book,funding_carry_basis,open_interest_positioning,volume_trade_flow,calendar_event_time,relative_value_spread,market_breadth,hybrid_conditional]
+horizons: [15m,1h,4h,1d]
+states: [trend,range,high_volatility,low_volatility]
+representations: [level,change,rank,zscore,residual]
+candidate_slots: 224
