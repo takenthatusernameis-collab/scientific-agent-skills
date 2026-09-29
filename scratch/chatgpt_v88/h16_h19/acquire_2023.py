@@ -65,8 +65,7 @@ def acquire_klines():
         fd[["fundingTime","fundingRate"]].to_csv(p,index=False,compression="gzip")
         manifest[f"{sym}_funding"]={"rows":int(len(fd)),"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
     root=hashlib.sha256(json.dumps(manifest,sort_keys=True).encode()).hexdigest()
-    (R/"H16_H19_DATA_MANIFEST.json").write_text(json.dumps({"start":str(START),"end":str(END),"root_sha256":root,"manifest":manifest},indent=2)+"
-")
+    (R/"H16_H19_DATA_MANIFEST.json").write_text(json.dumps({"start":str(START),"end":str(END),"root_sha256":root,"manifest":manifest},indent=2)+"\\n")
     print(json.dumps({"root_sha256":root,"symbols":len(SYMBOLS),"funding_symbols":len(FUNDING_SYMBOLS)},indent=2))
 
 if __name__=="__main__": acquire_klines()
