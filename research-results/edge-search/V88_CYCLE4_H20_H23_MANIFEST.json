@@ -1,6 +1,6 @@
 {
   "experiment_id": "V88-CYCLE4-H20-H23",
-  "prompt_version": "1.8.8",
+  "prompt_version": "1.9.1",
   "strategy_classes": [
     "CARRY_FUNDING",
     "RELATIVE_VALUE_MEAN_REVERSION",
