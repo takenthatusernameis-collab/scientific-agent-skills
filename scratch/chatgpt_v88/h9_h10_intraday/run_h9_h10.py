@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np,pandas as pd
 
 R=Path(__file__).resolve().parent
-DATA=R/"h9_h10_data"
+DATA=R.parent/"h9_h10_data"
 _candidates=list(DATA.glob("**/BTCUSDT.csv.gz"))
 if _candidates:
     DATA=_candidates[0].parent
