@@ -1,0 +1,84 @@
+name: V88 H20-H23 Execution Observer
+
+on:
+  workflow_run:
+    workflows: ["V88 H20-H23 Fresh 2023 Breadth Wave"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          pattern: v88-h20-h23-validation-*
+          path: observer/validation
+          merge-multiple: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          name: v88-h20-h23-config-lock
+          path: observer/config
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          name: v88-h20-h23-confirmatory
+          path: observer/confirmatory
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      - name: Record terminal execution evidence
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_NAME: ${{ github.event.workflow_run.name }}
+          RUN_STATUS: ${{ github.event.workflow_run.status }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HTML_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          python - <<'PY'
+          import glob,json,os,pathlib
+          def readall(pattern):
+              out=[]
+              for f in sorted(glob.glob(pattern,recursive=True)):
+                  try: out.append(json.load(open(f)))
+                  except Exception: pass
+              return out
+          vals=readall("observer/validation/**/H*_VALIDATION.json")
+          cfg=readall("observer/config/H20_H23_CONFIG_LOCK.json")
+          conf=readall("observer/confirmatory/H20_H23_CONFIRMATORY.json")
+          status={
+            "workflow_run_id":int(os.environ["RUN_ID"]),
+            "workflow_name":os.environ["RUN_NAME"],
+            "status":os.environ["RUN_STATUS"],
+            "conclusion":os.environ["RUN_CONCLUSION"],
+            "head_sha":os.environ["RUN_HEAD_SHA"],
+            "html_url":os.environ["RUN_HTML_URL"],
+            "prompt_version":"1.8.8",
+            "scientific_results_present":bool(vals or cfg or conf),
+            "validation_results":vals,
+            "config_lock":cfg[0] if cfg else None,
+            "confirmatory":conf[0] if conf else None
+          }
+          pathlib.Path("research-results/edge-search").mkdir(parents=True,exist_ok=True)
+          pathlib.Path("research-results/edge-search/V88_CYCLE4_H20_H23_LIVE_STATUS.json").write_text(json.dumps(status,indent=2)+"\n")
+          PY
+      - name: Commit terminal evidence
+        run: |
+          git config user.name "v88-observer"
+          git config user.email "v88-observer@users.noreply.github.com"
+          git add research-results/edge-search/V88_CYCLE4_H20_H23_LIVE_STATUS.json
+          git commit -m "V88 Cycle4: record execution terminal evidence" || exit 0
+          git push origin HEAD:main
