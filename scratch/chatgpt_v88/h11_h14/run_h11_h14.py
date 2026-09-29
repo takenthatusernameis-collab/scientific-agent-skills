@@ -161,7 +161,8 @@ def run_h14(frames,start,end):
             i+=1; continue
         e=idx[i+1]; x=idx[i+3]
         vals=[]
-        for s,d in alt.items():
+        for s,dclose in alt.items():
+            d=frames[s]
             if e in d.index and x in d.index:
                 vals.append(math.log(d.loc[x,"open"]/d.loc[e,"open"]))
         if len(vals)<4:
