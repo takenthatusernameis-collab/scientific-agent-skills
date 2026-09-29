@@ -1,6 +1,6 @@
 enterprise:
   id: "V88_RESEARCH_ENTERPRISE_V1"
-  version: "1.6.5"
+  version: "1.6.6"
   objective: >
     Conduct continuous, empirical, reproducible research until a scientifically
     credible and economically meaningful trading edge is verified, while preserving
@@ -11,8 +11,11 @@ enterprise:
     explicitly stops the enterprise.
 
   operating_model:
-    execution_style: "SERIALIZED_AGENTIC_ENTERPRISE"
+    execution_style: "SERIALIZED_CONTROL_PARALLEL_COMPUTE_ENTERPRISE"
     concurrency: "ONE_ACTIVE_ROLE_AT_A_TIME"
+    control_plane_concurrency: "SERIALIZED"
+    compute_plane_concurrency: "BOUNDED_PARALLEL"
+    max_parallel_compute_jobs: 4
     communication: "MACHINE_READABLE_HANDOFFS"
     state: "DURABLE"
     fail_closed: true
@@ -20,6 +23,41 @@ enterprise:
     research_mode: "CONTINUOUS_EDGE_SEARCH"
     resume_semantics: "EVERY_CONNECTOR_INVOCATION_RESUMES_FROM_DURABLE_STATE"
     user_interrupt_only_for: "EXPLICIT_STOP_OR_SCIENTIFIC_AMBIGUITY_THAT_CANNOT_BE_RESPONSIBLY_OPERATIONALIZED"
+
+    parallel_compute_policy:
+      enabled: true
+      default_max_concurrent_jobs: 4
+      minimum_safe_parallelism: 2
+      rule: >
+        "The control plane remains serialized: one role owns the current decision.
+        The compute plane may run independent empirical workers in parallel whenever
+        connector-visible capacity exists. Independent work must not be serialized
+        merely for conversational simplicity."
+      eligible_work:
+        - "materially different hypotheses"
+        - "pre-registered configurations within the same hypothesis family"
+        - "independent data-acquisition routes"
+        - "independent validation or robustness jobs"
+      forbidden_work:
+        - "duplicate retries of the same unchanged failure"
+        - "workers mutating shared canonical state"
+        - "workers reading sibling confirmatory OOS or holdout results before configuration lock"
+      worker_identity_required:
+        - "experiment_id"
+        - "config_id"
+        - "prompt_hash"
+        - "code_sha"
+        - "data_manifest_sha256"
+        - "isolated_result_path"
+      fanout_rule: >
+        "When multiple materially distinct jobs are immediately callable, launch the
+        largest bounded safe batch up to max_parallel_compute_jobs, subject to compute
+        budget and repository capacity. Do not wait for one independent job to finish
+        before starting other eligible jobs."
+      completion_rule: >
+        "A research wave is incomplete while an eligible independent worker remains
+        unlaunched or while a running worker has not produced a terminal evidence state,
+        unless the compute budget or environment creates a documented blocker."
 
     execution_continuity_guardrails:
       - "A non-terminal experiment failure MUST immediately produce a durable next_action."
@@ -50,12 +88,11 @@ enterprise:
       - "stop_after_an_ambiguous_tool_failure_without_route_diagnosis"
       - "count_prompt_or_state_editing_alone_as_research_progress"
     same_invocation_rule: >-
-      "Within one connector invocation, continue serially through every immediately
-      callable action needed to advance the active bottleneck. Do not stop after a
-      bookkeeping write when the connector still exposes a useful execution, data,
-      code, validation, or verification action. Stop only at a terminal release
-      condition, a genuine tool boundary, or a newly evidenced blocker requiring a
-      different capability."
+      "Within one connector invocation, keep the control plane serialized but execute
+      all safe independent compute actions in parallel. Do not stop after a bookkeeping
+      write when callable compute, data, validation, or verification actions remain.
+      Stop only at a terminal release condition, a genuine tool boundary, exhausted
+      bounded capacity, or a newly evidenced blocker requiring a different capability."
     research_progress_definition:
       qualifying_actions:
         - "real_data_acquisition_or_real_data_execution"
@@ -71,7 +108,9 @@ enterprise:
         - "archaeology_without_new_capability_or_evidence"
     progress_gate: >-
       "A connector invocation is compliant only when it produces at least one
-      qualifying research-progress action whenever a callable route exists."
+      qualifying research-progress action whenever a callable route exists. When
+      multiple safe independent jobs exist, compliance also requires attempting the
+      maximum bounded fan-out permitted by the current compute budget."
     scarce_compute_rule: >-
       "Scarce public compute may be consumed for registered empirical experiments,
       route tests, or validation; it may not be spent merely on prompt polishing."
@@ -226,12 +265,37 @@ enterprise:
         Maintain a diversified queue of materially different hypotheses so the
         enterprise does not overfit one strategy family. Diversity may span market,
         horizon, signal mechanism, asset universe, execution model, and risk model.
+      compute_rule: >
+        "At least two materially different hypotheses should be executing or queued
+        for execution whenever the compute plane is available, unless a higher-priority
+        confirmatory lock or an environment blocker temporarily prevents it."
     exploitation_exploration:
       mode: "ADAPTIVE"
       rule: >
         Allocate research effort between exploitation of promising surviving families
         and exploration of materially different hypotheses. Do not allocate all compute
         to the current best backtest.
+    multi_configuration_selection_firewall:
+      stage_1: "PARALLEL_VALIDATION_SCREEN"
+      stage_2: "CONFIRMATORY_CONFIGURATION_LOCK"
+      stage_3: "PRIMARY_OOS"
+      stage_4: "INDEPENDENT_HOLDOUT"
+      rules:
+        - "Parallel sibling configurations may compete only on pre-OOS validation/screening data until the confirmatory lock is committed."
+        - "Sibling workers MUST NOT inspect sibling confirmatory OOS or holdout outputs before the configuration lock."
+        - "At most one primary confirmatory configuration per family may enter the primary OOS by default."
+        - "Changing configuration after OOS is prohibited; a new configuration requires a new experiment ID and fresh preregistration."
+        - "If multiple same-family candidates reach confirmatory testing, they are exploratory unless a prespecified multiplicity adjustment is applied."
+        - "The best OOS result may never be selected from an unbounded sibling grid after seeing OOS results."
+      selection_artifacts:
+        - "configuration_matrix_hash"
+        - "validation_partition_hash"
+        - "selected_config_id"
+        - "selection_rule_hash"
+        - "sibling_result_manifest"
+        - "oos_lock_timestamp"
+      information_barrier: "VALIDATION_ONLY_UNTIL_CONFIRMATORY_LOCK"
+
     experiment_registry:
       private_path: "research-results/edge-search/EXPERIMENT_REGISTRY.jsonl"
       required_fields:
@@ -846,16 +910,16 @@ enterprise:
     rule: >-
       "Every connector invocation is a continuation of the same locked research
       enterprise. Restore durable state, inspect the latest evidence, identify the
-      highest-value executable action, perform it, verify its result, persist state,
-      and continue serially while callable progress remains. Optimize for empirical
-      progress rather than producing a polished explanation."
+      highest-value executable wave, launch bounded independent compute in parallel,
+      verify each result, persist evidence, and continue serially on the control plane.
+      Optimize for empirical progress rather than producing a polished explanation."
     required_sequence:
       - "RESTORE_STATE"
       - "READ_LATEST_EVENT_AND_EXPERIMENT_RECORD"
       - "IDENTIFY_CURRENT_EXECUTION_BOTTLENECK"
-      - "SELECT_HIGHEST_VALUE_CALLABLE_ACTION"
-      - "EXECUTE_ACTION"
-      - "VERIFY_ACTION_RESULT"
+      - "BUILD_BOUNDED_EXECUTION_WAVE"
+      - "LAUNCH_ELIGIBLE_WORKERS_IN_PARALLEL"
+      - "VERIFY_EACH_RESULT"
       - "PERSIST_PROGRESS_EVIDENCE"
       - "UPDATE_NEXT_ACTION"
       - "CONTINUE_WHILE_CALLABLE_OR_RELEASE_IF_TERMINAL"
