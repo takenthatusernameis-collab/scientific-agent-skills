@@ -1,6 +1,6 @@
 {
   "experiment_id": "V88-CYCLE3-H16-H19",
-  "prompt_version": "1.8.2",
+  "prompt_version": "1.8.5",
   "strategy_classes": [
     "CARRY_FUNDING",
     "LIQUIDITY",
@@ -44,10 +44,17 @@
   },
   "oos_firewall": "VALIDATION_ONLY_UNTIL_LOCK",
   "selection_rule": "highest fresh-validation Sharpe among n>=100, mean>0, PF>1",
-  "execution_status": "EXECUTION_REQUESTED_PR",
-  "execution_trigger": "PULL_REQUEST_24",
-  "trigger_reason": "Activate preregistered Cycle3 empirical research",
-  "prereq_topology_version": "1.8.2",
+  "execution_status": "EXECUTION_REQUESTED_V185_BREADTH",
+  "execution_trigger": "PULL_REQUEST_BREADTH_V185",
+  "trigger_reason": "Activate unchanged preregistered Cycle3 empirical research under V1.8.5 breadth governance after trigger-route revalidation",
+  "prereq_topology_version": "1.8.5",
   "execution_fix_revision": 1,
-  "execution_fix_reason": "Repair acquisition manifest serialization only"
+  "execution_fix_reason": "Repair acquisition manifest serialization only",
+  "breadth_governance": {
+    "information_source_target": 2,
+    "position_construction_target": 2,
+    "data_domain_target": 2,
+    "frontier_required": true,
+    "frontier_selection_affects_only": "scheduling/admission"
+  }
 }
