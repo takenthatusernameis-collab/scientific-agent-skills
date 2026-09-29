@@ -1,0 +1,29 @@
+{
+  "experiment_id": "V88-CYCLE4-H20-H23",
+  "prompt_version": "1.8.8",
+  "strategy_classes": ["CARRY_FUNDING","RELATIVE_VALUE_MEAN_REVERSION","MICROSTRUCTURE_ORDER_FLOW","CALENDAR_SEASONALITY"],
+  "information_source_families": ["funding_basis_and_carry","cross_asset_or_cross_market","volume_and_trade_flow","calendar_or_event_time"],
+  "position_construction_families": ["cross_sectional_portfolio","market_neutral_spread","event_driven"],
+  "data_domains": ["derivatives_cross_section","spot_plus_perpetuals","multi_asset_perpetuals"],
+  "validation": ["2023-01-01","2023-03-31"],
+  "oos": ["2023-04-01","2023-06-30"],
+  "holdout": ["2023-07-01","2023-12-31"],
+  "hypotheses": [
+    {"id":"H20_FUNDING_DISPERSION_CARRY","novelty":true,"raw_source":"funding rates","construction":"cross_sectional_portfolio"},
+    {"id":"H21_SPOT_PERP_BASIS_MEAN_REVERSION","novelty":true,"raw_source":"spot+perpetual prices","construction":"market_neutral_spread"},
+    {"id":"H22_FLOW_DIVERGENCE_PORTFOLIO","novelty":true,"raw_source":"taker-buy volume","construction":"cross_sectional_portfolio"},
+    {"id":"H23_WEEKEND_EVENT_REVERSAL","novelty":true,"raw_source":"calendar time + prior BTC return","construction":"event_driven"}
+  ],
+  "guardian": {
+    "min_classes": 3,
+    "workers": 4,
+    "min_information_sources": 2,
+    "min_position_constructions": 2,
+    "min_data_domains": 2
+  },
+  "oos_firewall":"VALIDATION_ONLY_UNTIL_LOCK",
+  "selection_rule":"highest fresh-validation Sharpe among n>=100, mean>0, PF>1",
+  "execution_status":"EXECUTION_REQUESTED",
+  "execution_trigger":"PUSH_MAIN_SINGLE_TRIGGER",
+  "trigger_reason":"Execute broadened V88 cycle under frozen v1.8.8 enterprise controls"
+}
