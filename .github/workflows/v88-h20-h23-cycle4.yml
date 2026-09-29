@@ -3,8 +3,6 @@ name: V88 H20-H23 Fresh 2023 Breadth Wave
 on:
   pull_request:
     branches: [main]
-    paths:
-      - "research-results/edge-search/V88_CYCLE4_H20_H23_MANIFEST.json"
 
 permissions:
   contents: read
