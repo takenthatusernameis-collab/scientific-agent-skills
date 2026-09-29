@@ -1,0 +1,39 @@
+{
+  "experiment_id": "V88-CYCLE5-H24-H27-PREFLIGHT",
+  "prompt_version": "1.9.4",
+  "scientific_execution": false,
+  "preflight_only": true,
+  "purpose": "verify real-data route availability for open-interest/metrics and order-book-depth frontier families before scientific fan-out",
+  "candidates": [
+    {
+      "id": "H24_OI_SHOCK_CAPITULATION",
+      "source": "open_interest_and_liquidations",
+      "construction": "single_asset_directional",
+      "domain": "perpetuals"
+    },
+    {
+      "id": "H25_OI_LONG_SHORT_DIVERGENCE",
+      "source": "open_interest_and_liquidations",
+      "construction": "cross_sectional_portfolio",
+      "domain": "derivatives_cross_section"
+    },
+    {
+      "id": "H26_BOOKDEPTH_IMBALANCE_REVERSION",
+      "source": "order_book_and_market_impact",
+      "construction": "event_driven",
+      "domain": "perpetuals"
+    },
+    {
+      "id": "H27_BOOKDEPTH_DEPLETION_CONTINUATION",
+      "source": "order_book_and_market_impact",
+      "construction": "conditional_portfolio",
+      "domain": "perpetuals"
+    }
+  ],
+  "selection_basis": "breadth frontier and information gain only; Historian rankings are excluded from selection",
+  "no_performance_metrics": "true",
+  "route_sources": {
+    "metrics": "Binance Vision daily metrics",
+    "bookDepth": "Binance Vision daily bookDepth"
+  }
+}
