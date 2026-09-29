@@ -64,21 +64,53 @@ jobs:
       - name: Normalize immutable inputs
         run: |
           set -euo pipefail
-          mkdir -p scratch/chatgpt_v88/deep_edge_117/inputs
-          find scratch/chatgpt_v88/deep_edge_117/input_artifact -type f -name 'DATA_MANIFEST.json' -exec cp {} scratch/chatgpt_v88/deep_edge_117/inputs/DATA_MANIFEST.json \;
-          find scratch/chatgpt_v88/deep_edge_117/input_artifact -type f -name 'WAVE_MANIFEST.json' -exec cp {} scratch/chatgpt_v88/deep_edge_117/inputs/WAVE_MANIFEST.json \;
-          find scratch/chatgpt_v88/deep_edge_117/input_artifact -type f -name 'candidate_matrix.json' -exec cp {} scratch/chatgpt_v88/deep_edge_117/inputs/candidate_matrix.json \;
-          find scratch/chatgpt_v88/deep_edge_117/input_artifact -type f -name 'stage1_matrix.json' -exec cp {} scratch/chatgpt_v88/deep_edge_117/inputs/stage1_matrix.json \;
-          mapfile -t fs < <(find scratch/chatgpt_v88/deep_edge_117/features -type f -name FEATURES.parquet)
-          test "${#fs[@]}" -eq 1
-          mkdir -p scratch/chatgpt_v88/deep_edge_117/features
-          cp "${fs[0]}" scratch/chatgpt_v88/deep_edge_117/features/FEATURES.parquet
-          rm -rf scratch/chatgpt_v88/deep_edge_117/robustness
-          mkdir -p scratch/chatgpt_v88/deep_edge_117/robustness
-          mapfile -t shards < <(find scratch/chatgpt_v88/deep_edge_117/robustness_artifacts -type f -name 'shard_*.json' | sort)
-          test "${#shards[@]}" -eq 16
-          for f in "${shards[@]}"; do cp "$f" scratch/chatgpt_v88/deep_edge_117/robustness/; done
-          test "$(find scratch/chatgpt_v88/deep_edge_117/robustness -type f -name 'shard_*.json' | wc -l)" -eq 16
+          python - <<'PY'
+          import json
+          import re
+          import shutil
+          from pathlib import Path
+
+          r=Path("scratch/chatgpt_v88/deep_edge_117")
+          inputs=r/"inputs"
+          inputs.mkdir(parents=True,exist_ok=True)
+
+          def one_file(root, name, dest):
+              hits=sorted(Path(root).rglob(name))
+              if len(hits)!=1:
+                  raise SystemExit(f"EXPECTED_EXACTLY_ONE:{name}:{len(hits)}:"+str(hits[:10]))
+              shutil.copy2(hits[0], inputs/dest)
+
+          root=r/"input_artifact"
+          for name in ["DATA_MANIFEST.json","WAVE_MANIFEST.json","candidate_matrix.json","stage1_matrix.json"]:
+              one_file(root,name,name)
+
+          feature_hits=sorted((r/"features").rglob("FEATURES.parquet"))
+          if len(feature_hits)!=1:
+              raise SystemExit(f"EXPECTED_EXACTLY_ONE:FEATURES.parquet:{len(feature_hits)}:"+str(feature_hits[:10]))
+
+          robust_root=r/"robustness_artifacts"
+          shard_hits=sorted(robust_root.rglob("shard_*.json"))
+          print("ROBUSTNESS_SHARD_FILES", [str(x) for x in shard_hits])
+          by_sid={}
+          for p in shard_hits:
+              m=re.search(r"shard_(\d+)\.json$",p.name)
+              if not m:
+                  continue
+              sid=int(m.group(1))
+              if sid in by_sid:
+                  raise SystemExit(f"DUPLICATE_SHARD_ID:{sid}:{by_sid[sid]}:{p}")
+              by_sid[sid]=p
+          if set(by_sid)!=set(range(16)):
+              raise SystemExit(f"EXPECTED_SHARD_IDS_0_TO_15:found={sorted(by_sid)}")
+          robust=r/"robustness"
+          if robust.exists():
+              shutil.rmtree(robust)
+          robust.mkdir(parents=True)
+          for sid,p in sorted(by_sid.items()):
+              shutil.copy2(p, robust/f"shard_{sid}.json")
+          shutil.copy2(feature_hits[0], r/"features/FEATURES.parquet")
+          print("NORMALIZATION_PASS", {"robustness_shards":len(by_sid)})
+          PY
       - name: Verify frozen identity and reduce robustness
         run: |
           set -euo pipefail
