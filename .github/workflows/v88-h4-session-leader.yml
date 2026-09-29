@@ -1,0 +1,150 @@
+name: V88 H4 US Session Relative Leader
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
+      - name: Download and compact real Binance 15m features
+        env:
+          H4_MODE: acquire
+        run: python scratch/chatgpt_v88/h4_session_leader/run_h4_session_leader.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-h4-data
+          path: |
+            scratch/chatgpt_v88/h4_session_leader/h4_data/H4_FEATURES.csv
+            scratch/chatgpt_v88/h4_session_leader/h4_data/H4_DATA_MANIFEST.json
+          if-no-files-found: error
+          retention-days: 1
+
+  validation-screen:
+    needs: acquire-data
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        threshold: ["0.0020","0.0030","0.0040","0.0050"]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h4-data
+          path: scratch/chatgpt_v88/h4_session_leader/h4_data
+      - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
+      - name: Run isolated H4 threshold validation
+        env:
+          H4_THRESHOLD: ${{ matrix.threshold }}
+        run: python scratch/chatgpt_v88/h4_session_leader/run_h4_session_leader.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-h4-validation-T${{ matrix.threshold }}
+          path: scratch/chatgpt_v88/h4_session_leader/h4_data/H4_VALIDATION_T${{ matrix.threshold }}.json
+          if-no-files-found: error
+          retention-days: 1
+
+  select-config:
+    needs: validation-screen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v88-h4-validation-*
+          path: validation-results
+          merge-multiple: true
+      - id: select
+        name: Lock one H4 configuration from validation only
+        shell: bash
+        run: |
+          python - <<'PY'
+          import glob,json
+          rows=[]
+          for fn in glob.glob("validation-results/H4_VALIDATION_T*.json"):
+              rows.extend(json.load(open(fn))["candidate_configs"])
+          eligible=[r for r in rows if r["validation"]["n"]>=100 and r["validation"]["mean"]>0 and r["validation"]["PF"]>1]
+          if not eligible:
+              raise SystemExit("NO_H4_VALIDATION_ELIGIBLE_CONFIGURATION")
+          eligible.sort(key=lambda r:(r["validation"]["Sharpe"],r["validation"]["mean"],r["validation"]["PF"]), reverse=True)
+          winner=eligible[0]
+          lock={
+            "experiment_id":"V88-CYCLE2-H4-US-SESSION-LEADER-CONFIG-LOCK",
+            "selection_rule":"highest validation Sharpe among preregistered configs with n>=100, positive mean, PF>1",
+            "selected_config": {"threshold":winner["threshold"],"exit":winner["exit"],"config_id":winner["config_id"]},
+            "selected_validation":winner["validation"],
+            "all_validation":[{"config_id":r["config_id"],"threshold":r["threshold"],"exit":r["exit"],"validation":r["validation"]} for r in rows],
+            "oos_seen":False
+          }
+          json.dump(lock,open("H4_CONFIG_LOCK.json","w"),indent=2)
+          print(json.dumps(lock,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-h4-config-lock
+          path: H4_CONFIG_LOCK.json
+          if-no-files-found: error
+          retention-days: 1
+
+  confirmatory:
+    needs: select-config
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h4-data
+          path: scratch/chatgpt_v88/h4_session_leader/h4_data
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h4-config-lock
+          path: .
+      - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
+      - name: Run frozen H4 OOS and holdout
+        env:
+          H4_THRESHOLD: ${{ fromJSON(steps.load-lock.outputs.threshold || '"0.0030"') }}
+        run: |
+          python - <<'PY'
+          import json,os
+          cfg=json.load(open("H4_CONFIG_LOCK.json"))["selected_config"]
+          os.environ["H4_THRESHOLD"]=str(cfg["threshold"])
+          os.environ["H4_EXIT"]=str(cfg["exit"])
+          os.environ["H4_MODE"]="confirm"
+          from runpy import run_path
+          run_path("scratch/chatgpt_v88/h4_session_leader/run_h4_session_leader.py", run_name="__main__")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v88-h4-confirmatory
+          path: scratch/chatgpt_v88/h4_session_leader/H4_CONFIRMATORY.json
+          if-no-files-found: error
+          retention-days: 1
