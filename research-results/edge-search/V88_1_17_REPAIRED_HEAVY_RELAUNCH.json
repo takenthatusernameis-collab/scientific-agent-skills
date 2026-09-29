@@ -1,0 +1,9 @@
+{
+  "launch_type": "V88_1_17_REPAIRED_HEAVY_RELAUNCH",
+  "experiment_id": "V88-1-17-DEEP-REAL-DATA-EDGE-WAVE",
+  "candidate_count": 4096,
+  "shards": 64,
+  "repair": "Rerun reducer now downloads and normalizes immutable WAVE_MANIFEST.json and candidate_matrix.json from v88-1-17-inputs before reducer readiness.",
+  "scientific_matrix_unchanged": true,
+  "stale_run_supersession": true
+}
