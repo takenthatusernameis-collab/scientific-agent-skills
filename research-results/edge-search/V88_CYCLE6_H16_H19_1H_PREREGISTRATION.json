@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0",
+  "experiment_id": "V88-CYCLE6-H16-H19-1H-FRESH-20260929",
+  "objective": "Freshly preregistered frontier pilot using four previously untested mechanism families, with an independently sourced Binance Vision funding route and 1h representation.",
+  "branch": "chatgpt/v88-1-17-0-deep-edge-wave-20260929",
+  "real_data_only": true,
+  "hypotheses": [
+    {
+      "id": "H16_1H_FUNDING_CARRY_CONTRARIAN",
+      "source": "funding_basis_and_carry",
+      "mechanism": "crowding_mean_reversion",
+      "construction": "market_neutral_basket",
+      "timeframe": "1h"
+    },
+    {
+      "id": "H17_1H_LIQUIDITY_SHOCK_REVERSAL",
+      "source": "volume_and_range",
+      "mechanism": "liquidity_dislocation",
+      "construction": "single_asset_directional",
+      "timeframe": "1h"
+    },
+    {
+      "id": "H18_1H_WEEKEND_CALENDAR_REVERSAL",
+      "source": "calendar_or_event_time",
+      "mechanism": "seasonality_reversal",
+      "construction": "single_asset_directional",
+      "timeframe": "1h"
+    },
+    {
+      "id": "H19_1H_VOLATILITY_STATE_CONTINUATION",
+      "source": "volatility_regime",
+      "mechanism": "state_conditioned_continuation",
+      "construction": "single_asset_directional",
+      "timeframe": "1h"
+    }
+  ],
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "DOGEUSDT",
+    "INJUSDT",
+    "OPUSDT",
+    "STXUSDT",
+    "LINKUSDT"
+  ],
+  "funding_symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+  ],
+  "partitions": {
+    "validation": [
+      "2023-01-01",
+      "2023-03-31"
+    ],
+    "oos": [
+      "2023-04-01",
+      "2023-06-30"
+    ],
+    "holdout": [
+      "2023-07-01",
+      "2023-09-30"
+    ]
+  },
+  "cost_model": {
+    "round_trip": 0.0021
+  },
+  "selection_rule": "Validation-only; select highest fresh-validation Sharpe among candidates with n>=100, mean>0, PF>1, Sharpe>=0.5. Historian rankings and OOS/holdout are excluded.",
+  "oos_gate": "n>=100, mean>0, PF>1, Sharpe>=0.9",
+  "holdout_gate": "n>=60, mean>0, PF>1, Sharpe>=0.9",
+  "holdout_selection_forbidden": true,
+  "deployment_rule": "never automatic; requires independent rerun plus explicit human approval",
+  "data_route": "Binance Vision monthly USD-M Futures 1h klines + monthly fundingRate archives",
+  "workflow_file": ".github/workflows/v88-1-17-0-deep-edge-wave.yml"
+}

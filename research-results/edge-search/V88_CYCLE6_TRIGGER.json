@@ -1,0 +1,10 @@
+{
+  "trigger_type": "V88_CYCLE6_FRONTIER_PILOT",
+  "launch_id": "V88-CYCLE6-H16-H19-1H-FRESH-20260929-R1",
+  "experiment_id": "V88-CYCLE6-H16-H19-1H-FRESH-20260929",
+  "scientific_matrix_frozen": true,
+  "no_holdout_feedback": true,
+  "new_representation": "1h bars with official Binance Vision monthly fundingRate route",
+  "reason": "Continue the V88 breadth frontier with four previously untested mechanisms; bounded pilot before any larger search.",
+  "parent_commit": "980a6b17fff3bb6e9b2b148497319079d5140bfb"
+}
