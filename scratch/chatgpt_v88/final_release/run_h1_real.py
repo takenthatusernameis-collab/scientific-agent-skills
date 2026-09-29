@@ -36,7 +36,8 @@ def metrics(eq,r):
     s=r.std(ddof=1); down=r[r<0].std(ddof=1)
     return {'total_return':float(eq.iloc[-1]-1),'CAGR':float(eq.iloc[-1]**(365.25/((eq.index[-1]-eq.index[0]).total_seconds()/86400))-1),'Sharpe':float(np.sqrt(2190)*r.mean()/s) if s else 0.0,'Sortino':float(np.sqrt(2190)*r.mean()/down) if down else 0.0,'MDD':float(dd.min()),'periods':int(len(r))}
 
-close=pd.concat([get(SINCE,s) for s in [BTC]+SYMS],axis=1)
+data_start=VALID_START if STAGE=='VALIDATION' else SINCE
+close=pd.concat([get(data_start,s) for s in [BTC]+SYMS],axis=1)
 close.columns=['BTC']+['A'+str(i) for i in range(len(SYMS))]
 ret=close.pct_change()
 r6=close.pct_change(H)
