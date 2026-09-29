@@ -20,15 +20,28 @@ def load():
     frames={}; funding={}; hashes={}
     for p in sorted(DATA.glob("*.csv.gz")):
         hashes[p.name]=hashlib.sha256(p.read_bytes()).hexdigest()
-        if p.name.startswith("funding_"):
-            d=pd.read_csv(p); d["fundingTime"]=pd.to_datetime(d["fundingTime"],utc=True,format="mixed")
-            d["fundingRate"]=pd.to_numeric(d.fundingRate,errors="coerce"); funding[p.stem.removeprefix("funding_")]=d.dropna().set_index("fundingTime").sort_index()
+        name=p.name
+        if name.startswith("funding_") and name.endswith(".csv.gz"):
+            sym=name[len("funding_"):-len(".csv.gz")]
+            d=pd.read_csv(p)
+            d["fundingTime"]=pd.to_datetime(d["fundingTime"],utc=True,format="mixed")
+            d["fundingRate"]=pd.to_numeric(d["fundingRate"],errors="coerce")
+            funding[sym]=d.dropna().set_index("fundingTime").sort_index()
+            continue
+        if name.startswith("perp_") and name.endswith(".csv.gz"):
+            sym=name[len("perp_"):-len(".csv.gz")]
+            key="perp_"+sym
+        elif name.startswith("spot_") and name.endswith(".csv.gz"):
+            sym=name[len("spot_"):-len(".csv.gz")]
+            key="spot_"+sym
         else:
-            d=pd.read_csv(p); d["timestamp"]=pd.to_datetime(d["timestamp"],utc=True,format="mixed")
-            for col in ["open","high","low","close","volume","taker_buy_base_volume"]: d[col]=pd.to_numeric(d[col],errors="coerce")
-            frames[p.stem.removeprefix("perp_").removeprefix("spot_")]=d.dropna(subset=["timestamp","open","close"]).drop_duplicates("timestamp").sort_values("timestamp").set_index("timestamp")
-            if p.name.startswith("spot_"): frames["spot_"+p.stem.removeprefix("spot_")]=frames.pop(p.stem.removeprefix("spot_"))
-            else: frames["perp_"+p.stem.removeprefix("perp_")]=frames.pop(p.stem.removeprefix("perp_"))
+            continue
+        d=pd.read_csv(p)
+        d["timestamp"]=pd.to_datetime(d["timestamp"],utc=True,format="mixed")
+        for col in ["open","high","low","close","volume","taker_buy_base_volume"]:
+            if col in d.columns:
+                d[col]=pd.to_numeric(d[col],errors="coerce")
+        frames[key]=d.dropna(subset=["timestamp","open","close"]).drop_duplicates("timestamp").sort_values("timestamp").set_index("timestamp")
     return frames,funding,hashes
 
 def metric(rows):
