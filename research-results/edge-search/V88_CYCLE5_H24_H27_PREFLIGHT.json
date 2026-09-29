@@ -1,6 +1,6 @@
 {
   "experiment_id": "V88-CYCLE5-H24-H27-PREFLIGHT",
-  "prompt_version": "1.9.4",
+  "prompt_version": "1.9.5",
   "scientific_execution": false,
   "preflight_only": true,
   "purpose": "verify real-data route availability for open-interest/metrics and order-book-depth frontier families before scientific fan-out",
@@ -35,5 +35,15 @@
   "route_sources": {
     "metrics": "Binance Vision daily metrics",
     "bookDepth": "Binance Vision daily bookDepth"
-  }
+  },
+  "prompt_sha": "8fab9429fd89f05bf6cc74da8f3fba8458814978",
+  "control_plane_release_commit": "7dc2147c19a398417855ee7a17665920a9309e11",
+  "execution_request": "CAPABILITY_PREFLIGHT",
+  "route_id": "BINANCE_VISION_METRICS_BOOKDEPTH_PREFLIGHT",
+  "registered_at_utc": "2026-09-29T00:00:00Z",
+  "compute_layout": [
+    "vectorized",
+    "pipelined"
+  ],
+  "precision_policy": "float32 for large signal matrices when numerically equivalent; float64 for sensitive reductions"
 }
