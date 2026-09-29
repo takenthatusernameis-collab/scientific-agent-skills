@@ -1,0 +1,47 @@
+{
+  "experiment_id": "V88-CYCLE3-H16-H19",
+  "prompt_version": "1.8.2",
+  "strategy_classes": [
+    "CARRY_FUNDING",
+    "LIQUIDITY",
+    "CALENDAR_SEASONALITY",
+    "VOLATILITY_REGIME"
+  ],
+  "validation": [
+    "2023-01-01",
+    "2023-03-31"
+  ],
+  "oos": [
+    "2023-04-01",
+    "2023-06-30"
+  ],
+  "holdout": [
+    "2023-07-01",
+    "2023-12-31"
+  ],
+  "hypotheses": [
+    {
+      "id": "H16_FUNDING_CARRY_CONTRARIAN",
+      "novelty": true
+    },
+    {
+      "id": "H17_LIQUIDITY_SHOCK_REVERSAL",
+      "novelty": true
+    },
+    {
+      "id": "H18_WEEKEND_CALENDAR_CARRY",
+      "novelty": true
+    },
+    {
+      "id": "H19_VOLATILITY_STATE_CONTINUATION",
+      "novelty": true
+    }
+  ],
+  "guardian": {
+    "min_classes": 3,
+    "workers": 4,
+    "same_family_max_workers": 2
+  },
+  "oos_firewall": "VALIDATION_ONLY_UNTIL_LOCK",
+  "selection_rule": "highest fresh-validation Sharpe among n>=100, mean>0, PF>1"
+}
