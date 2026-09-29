@@ -2,6 +2,8 @@ import csv, io, json, os, hashlib, math, zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+from datetime import timedelta
 
 import numpy as np
 import pandas as pd
@@ -48,32 +50,73 @@ def fetch(url, out):
                 data = r.read()
             if len(data) < 100:
                 raise RuntimeError(f"tiny response {len(data)} bytes")
+            out.parent.mkdir(parents=True, exist_ok=True)
             out.write_bytes(data)
             return out
+        except HTTPError as e:
+            if e.code == 404:
+                return None
+            last = e
         except Exception as e:
             last = e
     raise RuntimeError(f"download failed: {url}: {last}")
 
 def acquire():
+    current_ym = END.strftime("%Y-%m")
     jobs = []
     for symbol in SYMBOLS:
         for ym in month_range():
             p = DATA / "zips" / symbol / f"{symbol}-15m-{ym}.zip"
             p.parent.mkdir(parents=True, exist_ok=True)
             url = f"https://data.binance.vision/data/futures/um/monthly/klines/{symbol}/15m/{symbol}-15m-{ym}.zip"
-            jobs.append((url, p))
+            jobs.append((symbol, ym, url, p))
     failures = []
+    missing_months_404 = []
+    current_month_fallback = []
+
+    def do_fetch(item):
+        symbol, key, url, p = item
+        try:
+            return symbol, key, fetch(url, p), None
+        except Exception as e:
+            return symbol, key, None, str(e)
+
     with ThreadPoolExecutor(max_workers=8) as ex:
-        fs = {ex.submit(fetch, u, p): (u, p) for u, p in jobs}
+        fs = {ex.submit(do_fetch, item): item for item in jobs}
         for f in as_completed(fs):
-            u, p = fs[f]
-            try:
-                f.result()
-            except Exception as e:
-                failures.append({"url": u, "path": str(p), "error": str(e)})
+            symbol, key, result, err = f.result()
+            if err:
+                failures.append({"symbol":symbol,"month":key,"error":err})
+            elif result is None:
+                if key == current_ym:
+                    current_month_fallback.append(symbol)
+                else:
+                    missing_months_404.append({"symbol":symbol,"month":key})
+
+    daily_jobs = []
+    for symbol in sorted(set(current_month_fallback)):
+        day = pd.Timestamp(current_ym + "-01", tz="UTC")
+        while day <= END.normalize():
+            ds = day.strftime("%Y-%m-%d")
+            p = DATA / "zips" / symbol / f"{symbol}-15m-{ds}.zip"
+            url = f"https://data.binance.vision/data/futures/um/daily/klines/{symbol}/15m/{symbol}-15m-{ds}.zip"
+            daily_jobs.append((symbol, ds, url, p))
+            day += timedelta(days=1)
+
+    daily_404 = []
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        fs = {ex.submit(do_fetch, item): item for item in daily_jobs}
+        for f in as_completed(fs):
+            symbol, key, result, err = f.result()
+            if err:
+                failures.append({"symbol":symbol,"day":key,"error":err})
+            elif result is None:
+                daily_404.append({"symbol":symbol,"day":key})
+
     if failures:
         (DATA / "DOWNLOAD_FAILURES.json").write_text(json.dumps(failures, indent=2))
-        raise RuntimeError(f"{len(failures)} monthly downloads failed")
+        raise RuntimeError(f"{len(failures)} non-404 archive downloads failed")
+
     features = {}
     for symbol in SYMBOLS:
         parts = []
@@ -83,18 +126,16 @@ def acquire():
                 if not names:
                     continue
                 with zz.open(names[0]) as fh:
-                    df = pd.read_csv(
-                        fh,
-                        header=None,
-                        usecols=[0,4],
-                        names=["open_time","close"],
-                    )
-                if not np.issubdtype(df["open_time"].dtype, np.number):
-                    df = df.iloc[1:]
-                df["open_time"] = pd.to_datetime(pd.to_numeric(df["open_time"]), unit="ms", utc=True)
-                df["close"] = pd.to_numeric(df["close"], errors="coerce")
-                df = df.dropna().set_index("open_time")
-                parts.append(df)
+                    df = pd.read_csv(fh, header=None, usecols=[0,4], names=["open_time","close"])
+            if not np.issubdtype(df["open_time"].dtype, np.number):
+                df = df.iloc[1:]
+            df["open_time"] = pd.to_datetime(pd.to_numeric(df["open_time"]), unit="ms", utc=True)
+            df["close"] = pd.to_numeric(df["close"], errors="coerce")
+            df = df.dropna().set_index("open_time")
+            parts.append(df)
+
+        if not parts:
+            continue
         x = pd.concat(parts).sort_index()
         x = x.loc[(x.index >= START) & (x.index <= END)]
         local = x.tz_convert("America/New_York")
@@ -103,21 +144,25 @@ def acquire():
         needed = ["09:15","09:45"] + list(EXITS.values())
         local = local[local["hhmm"].isin(needed)].copy()
         piv = local.pivot_table(index="ny_date", columns="hhmm", values="close", aggfunc="last")
-        piv.columns = [str(c).replace(":","") for c in piv.columns]
+        piv.columns = [str(v).replace(":","") for v in piv.columns]
         piv.index = pd.to_datetime(piv.index)
         piv["symbol"] = symbol
         features[symbol] = piv.reset_index().rename(columns={"ny_date":"date"})
+
     rows = []
     for symbol, df in features.items():
-        keep = ["date","symbol"] + sorted([c for c in df.columns if c not in {"date","symbol"}])
+        keep = ["date","symbol"] + sorted([col for col in df.columns if col not in {"date","symbol"}])
         rows.append(df[keep])
+    if not rows:
+        raise RuntimeError("NO_US_SESSION_FEATURE_ROWS")
     feature_df = pd.concat(rows, ignore_index=True)
     feature_path = DATA / "H4_FEATURES.csv"
     feature_df.to_csv(feature_path, index=False)
+
     manifest = {
         "experiment_id": "V88-CYCLE2-H4-US-SESSION-LEADER",
         "real_data": True,
-        "source": "Binance USD-M Public Data monthly 15m klines",
+        "source": "Binance USD-M Public Data monthly 15m klines with daily current-month fallback",
         "symbols": SYMBOLS,
         "date_range_utc": [str(START), str(END)],
         "signal": SESSION_LOOKBACK,
@@ -128,7 +173,16 @@ def acquire():
         "exits_ny": list(EXITS.keys()),
         "round_trip_cost": ROUND_TRIP_COST,
         "feature_sha256": sha256_file(feature_path),
-        "download_count": len(jobs),
+        "monthly_download_count": len(jobs),
+        "current_month_daily_fallback_count": len(daily_jobs),
+        "missing_months_404": missing_months_404,
+        "current_month_daily_404": daily_404,
+        "route_repair": "MISSING_INCOMPLETE_MONTHS_USE_DAILY; OLDER_404_MONTHS_EXPLICITLY_RECORDED"
+    }
+    (DATA / "H4_DATA_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    print(json.dumps(manifest, indent=2))
+
+   "download_count": len(jobs),
     }
     (DATA / "H4_DATA_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest, indent=2))
