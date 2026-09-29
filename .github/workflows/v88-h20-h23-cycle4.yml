@@ -31,9 +31,25 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  validation:
+  readiness-canary:
     needs: acquire-data
-    strategy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: v88-h20-h23-2023-data
+          path: scratch/chatgpt_v88/h20_h23/h20_h23_data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
+      - name: Exact producer-consumer readiness canary
+        run: python scratch/chatgpt_v88/h20_h23/readiness_canary.py
+
+  validation:
+    needs: readiness-canary    strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
