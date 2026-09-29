@@ -1,0 +1,31 @@
+{
+  "prompt_version": "1.6.6",
+  "experiment_id": "V88-CYCLE2-H2",
+  "hypothesis_id": "H2_BTC_VOLUME_DELTA_ALT",
+  "signal": "BTC taker-buy-volume delta fraction = (2*taker_buy_base-volume)/volume",
+  "z_lookback_bars": 180,
+  "validation_thresholds": [
+    0.75,
+    1,
+    1.25
+  ],
+  "fixed_horizon_bars": 6,
+  "basket": [
+    "JTOUSDT",
+    "PYTHUSDT",
+    "WIFUSDT",
+    "SEIUSDT",
+    "TIAUSDT",
+    "ENAUSDT",
+    "ORDIUSDT",
+    "JUPUSDT"
+  ],
+  "validation_window": [
+    "2024-01-01T00:00:00Z",
+    "2025-09-30T23:59:59Z"
+  ],
+  "confirmatory_oos_start": "2025-10-01T00:00:00Z",
+  "costs_per_round_trip": 0.0021,
+  "synthetic_data_disallowed": true,
+  "selection_before_oos": true
+}
