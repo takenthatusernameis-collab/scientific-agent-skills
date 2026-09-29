@@ -298,6 +298,40 @@ def main() -> int:
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    # Public compute exports a deterministic handoff descriptor for the private control plane.
+    # This sidecar is a projection of the terminal manifest, not a new scientific result.
+    # It is intentionally excluded from artifact_digest to avoid circular hashing.
+    persistence_input = {
+        "schema_version": "terminal-persistence-input-v1",
+        "purpose": "private_control_plane_handoff",
+        "experiment_id": args.experiment_id,
+        "terminal_status": manifest["terminal_status"],
+        "terminal_manifest_path": "terminal_manifest.json",
+        "terminal_manifest_sha256": sha256_file(root / "terminal_manifest.json"),
+        "artifact_digest": manifest["artifact_digest"]["sha256"],
+        "worker_repository": args.worker_repository,
+        "worker_commit_sha": args.worker_commit,
+        "workflow_run_id": args.workflow_run_id,
+        "identity_fields": [
+            "experiment_id",
+            "terminal_status",
+            "terminal_manifest_sha256",
+            "artifact_digest",
+        ],
+        "private_records_required": [
+            "state",
+            "historian",
+            "process",
+            "event",
+        ],
+        "private_persistence_contract": "enterprise/v88/TERMINAL_RESEARCH_PERSISTENCE_CONTRACT.yaml",
+        "note": "Machine handoff metadata only; no private research conclusions.",
+    }
+    (root / "terminal_persistence_input.json").write_text(
+        json.dumps(persistence_input, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
     print(json.dumps(manifest, indent=2, sort_keys=True))
     return 0
 
