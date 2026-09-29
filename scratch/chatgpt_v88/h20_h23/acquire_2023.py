@@ -55,23 +55,38 @@ def acquire():
         d=monthly_klines(SPOT_BASE,sym)
         p=DATA/f"spot_{sym}.csv.gz"; d.to_csv(p,index=False,compression="gzip")
         manifest[f"spot_{sym}"]={"rows":int(len(d)),"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
+    FUNDING_BASE="https://data.binance.vision/data/futures/um/monthly/fundingRate"
     for sym in FUNDING_SYMBOLS:
-        rows=[]; cursor=int(START.timestamp()*1000); end_ms=int(END.timestamp()*1000)
-        while cursor<=end_ms:
-            q=urllib.parse.urlencode({"symbol":sym,"startTime":cursor,"endTime":end_ms,"limit":1000})
-            raw=json.loads(download(f"https://fapi.binance.com/fapi/v1/fundingRate?{q}").decode())
-            if not raw: break
-            rows.extend(raw)
-            last=int(raw[-1]["fundingTime"])
-            if last<=cursor: break
-            cursor=last+1
-            if len(raw)<1000: break
-        fd=pd.DataFrame(rows)
-        if fd.empty: raise RuntimeError(f"NO_FUNDING {sym}")
-        fd["fundingTime"]=pd.to_datetime(pd.to_numeric(fd["fundingTime"]),unit="ms",utc=True)
-        fd["fundingRate"]=pd.to_numeric(fd["fundingRate"],errors="coerce")
-        fd=fd.drop_duplicates("fundingTime").sort_values("fundingTime")
-        p=DATA/f"funding_{sym}.csv.gz"; fd[["fundingTime","fundingRate"]].to_csv(p,index=False,compression="gzip")
+        frames=[]
+        for m in pd.date_range(START.normalize(),END.normalize(),freq="MS"):
+            url=f"{FUNDING_BASE}/{sym}/{sym}-fundingRate-{m.year}-{m.month:02d}.zip"
+            try:
+                blob=download(url)
+            except urllib.error.HTTPError as e:
+                if e.code==404:
+                    print(f"SKIP_MISSING_FUNDING_ARCHIVE {url}")
+                    continue
+                raise
+            with zipfile.ZipFile(io.BytesIO(blob)) as z:
+                names=[n for n in z.namelist() if n.endswith(".csv")]
+                if not names:
+                    raise RuntimeError(f"NO_FUNDING_CSV {sym} {m.date()}")
+                fd=pd.read_csv(z.open(names[0]))
+            cols={str(x).lower():x for x in fd.columns}
+            tcol=next((cols[k] for k in ["calc_time","fundingtime","funding_time"] if k in cols),None)
+            rcol=next((cols[k] for k in ["last_funding_rate","fundingrate","funding_rate"] if k in cols),None)
+            if tcol is None or rcol is None:
+                raise RuntimeError(f"FUNDING_SCHEMA_UNKNOWN {sym} {m.date()} columns={list(fd.columns)}")
+            fd=fd[[tcol,rcol]].copy()
+            fd.columns=["fundingTime","fundingRate"]
+            fd["fundingTime"]=pd.to_datetime(pd.to_numeric(fd["fundingTime"],errors="coerce"),unit="ms",utc=True)
+            fd["fundingRate"]=pd.to_numeric(fd["fundingRate"],errors="coerce")
+            frames.append(fd.dropna())
+        if not frames:
+            raise RuntimeError(f"NO_FUNDING_ARCHIVE_DATA {sym}")
+        fd=pd.concat(frames,ignore_index=True).drop_duplicates("fundingTime").sort_values("fundingTime")
+        p=DATA/f"funding_{sym}.csv.gz"
+        fd.to_csv(p,index=False,compression="gzip")
         manifest[f"funding_{sym}"]={"rows":int(len(fd)),"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
     root=hashlib.sha256(json.dumps(manifest,sort_keys=True).encode()).hexdigest()
     (R/"H20_H23_DATA_MANIFEST.json").write_text(json.dumps({"start":str(START),"end":str(END),"root_sha256":root,"manifest":manifest},indent=2)+"\n")
