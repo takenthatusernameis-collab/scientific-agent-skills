@@ -61,6 +61,11 @@ jobs:
       - name: Normalize reducer inputs
         run: |
           set -euo pipefail
+          mapfile -t wm < <(find scratch/chatgpt_v88/deep_edge_117 -type f -name WAVE_MANIFEST.json)
+          test "${#wm[@]}" -eq 1
+          mkdir -p scratch/chatgpt_v88/deep_edge_117/inputs
+          cp "${wm[0]}" scratch/chatgpt_v88/deep_edge_117/inputs/WAVE_MANIFEST.json
+
           mapfile -t cm < <(find scratch/chatgpt_v88/deep_edge_117 -type f -name candidate_matrix.json)
           test "${#cm[@]}" -eq 1
           mkdir -p scratch/chatgpt_v88/deep_edge_117/inputs
