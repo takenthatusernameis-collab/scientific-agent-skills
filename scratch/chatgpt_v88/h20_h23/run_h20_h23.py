@@ -8,7 +8,7 @@ VAL_START=pd.Timestamp("2023-01-01",tz="UTC"); VAL_END=pd.Timestamp("2023-03-31 
 OOS_START=pd.Timestamp("2023-04-01",tz="UTC"); OOS_END=pd.Timestamp("2023-06-30 23:59:59",tz="UTC")
 HOLD_START=pd.Timestamp("2023-07-01",tz="UTC"); HOLD_END=pd.Timestamp("2023-12-31 23:59:59",tz="UTC")
 COST=0.0021
-PERPS=["SOLUSDT","APTUSDT","ARBUSDT","OPUSDT","SEIUSDT","SUIUSDT","STXUSDT","INJUSDT"]
+PERPS=["SOLUSDT","APTUSDT","OPUSDT","STXUSDT","INJUSDT","DOGEUSDT","LINKUSDT","MATICUSDT"]
 
 META={
 "H20":{"class":"CARRY_FUNDING","source":"funding_basis_and_carry","mechanism":"carry","construction":"cross_sectional_portfolio","domain":"derivatives_cross_section","name":"FUNDING_DISPERSION_CARRY"},
