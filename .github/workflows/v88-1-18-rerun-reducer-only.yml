@@ -1,0 +1,94 @@
+name: V88 Frozen Rerun Reducer Continuation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rerun_reduce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 3fdb587e9db363ee8406136a66a8cfd0b4f33dcd
+          fetch-depth: 1
+          sparse-checkout: |
+            requirements-v88-deep-edge-118.txt
+            scratch/chatgpt_v88/deep_edge_117
+            research-results/edge-search
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: python -m pip install --disable-pip-version-check --no-input -r requirements-v88-deep-edge-118.txt
+
+      - name: Download frozen inputs
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: takenthatusernameis-collab/scientific-agent-skills
+          run-id: 36539347437
+          artifact-ids: 11019369619
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
+
+      - name: Download exact final summary
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: takenthatusernameis-collab/scientific-agent-skills
+          run-id: 36543217125
+          artifact-ids: 11021675685
+          path: scratch/chatgpt_v88/deep_edge_117/final_summary
+
+      - name: Download exact rerun shards
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: takenthatusernameis-collab/scientific-agent-skills
+          run-id: 36543217125
+          artifact-ids: 11021910565,11021770718,11021680347,11020409821
+          path: scratch/chatgpt_v88/deep_edge_117/rerun_artifacts
+
+      - name: Normalize reducer inputs
+        run: |
+          set -euo pipefail
+          mapfile -t cm < <(find scratch/chatgpt_v88/deep_edge_117 -type f -name candidate_matrix.json)
+          test "${"+'#'}cm[@]}" -eq 1
+          mkdir -p scratch/chatgpt_v88/deep_edge_117/inputs
+          cp "${cm[0]}" scratch/chatgpt_v88/deep_edge_117/inputs/candidate_matrix.json
+
+          mapfile -t fs < <(find scratch/chatgpt_v88/deep_edge_117/final_summary -type f -name FINAL_EDGE_WAVE_SUMMARY.json)
+          test "${"+'#'}fs[@]}" -eq 1
+          cp "${fs[0]}" scratch/chatgpt_v88/deep_edge_117/FINAL_EDGE_WAVE_SUMMARY.json
+
+          rm -rf scratch/chatgpt_v88/deep_edge_117/rerun
+          mkdir -p scratch/chatgpt_v88/deep_edge_117/rerun
+          mapfile -t rr < <(find scratch/chatgpt_v88/deep_edge_117/rerun_artifacts -type f -name 'shard_*.json' | sort)
+          test "${"+'#'}rr[@]}" -eq 4
+          for f in "${rr[@]}"; do
+            cp "$f" scratch/chatgpt_v88/deep_edge_117/rerun/
+          done
+
+      - name: Rerun reducer readiness
+        run: |
+          set -euo pipefail
+          test -f scratch/chatgpt_v88/deep_edge_117/inputs/candidate_matrix.json
+          test -f scratch/chatgpt_v88/deep_edge_117/FINAL_EDGE_WAVE_SUMMARY.json
+          test "$(find scratch/chatgpt_v88/deep_edge_117/rerun -type f -name 'shard_*.json' | wc -l)" -eq 4
+
+      - name: Run frozen independent reducer
+        run: python scratch/chatgpt_v88/deep_edge_117/rerun_reduce.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v88-1-18-edge-verification
+          path: scratch/chatgpt_v88/deep_edge_117/EDGE_VERIFICATION.json
+          retention-days: 7
+          if-no-files-found: error
