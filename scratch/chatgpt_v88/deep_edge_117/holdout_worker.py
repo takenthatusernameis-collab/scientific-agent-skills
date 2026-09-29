@@ -66,7 +66,7 @@ def evaluate(cid,start,end,cost=COST_BASE,override_L=None,universe_mode=None):
  # Market-neutral by construction when both legs exist; one-sided fallback is forbidden for this wave.
  valid=(longn>0)&(shortn>0)
  trade=(0.5*longret-0.5*shortret).where(valid).dropna()
- turnover=(valid.astype(float)*2.0)
+ turnover=(valid.astype(float))
  trade=trade-cost*turnover.reindex(trade.index)
  n=int(len(trade))
  if n<2:return {"candidate_id":cid,"n":n,"mean":None,"pf":None,"sharpe":None,"mdd":None,"turnover":None}
