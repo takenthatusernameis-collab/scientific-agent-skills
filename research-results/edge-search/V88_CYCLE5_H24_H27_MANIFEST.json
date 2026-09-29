@@ -1,15 +1,34 @@
 {
-  "experiment_id":"V88-CYCLE5-H24-H27",
-  "prompt_version":"1.9.5",
-  "prompt_sha":"8fab9429fd89f05bf6cc74da8f3fba8458814978",
-  "hypotheses":["H24_OI_SHOCK_CAPITULATION","H25_OI_LONG_SHORT_DIVERGENCE","H26_BOOKDEPTH_IMBALANCE_REVERSION","H27_BOOKDEPTH_DEPLETION_CONTINUATION"],
-  "validation_partition":["2023-01-01","2023-03-31"],
-  "oos_partition":["2023-04-01","2023-06-30"],
-  "holdout_partition":["2023-07-01","2023-12-31"],
-  "oos_status":"LOCKED_AFTER_VALIDATION_SELECTION_ONLY",
-  "compute_layout":["vectorized","pipelined"],
-  "precision_mode":"float32_signal_float64_reduction",
-  "selection_rule":"Validation results are descriptive only; no OOS promotion in this wave.",
-  "real_data_only":true,
-  "scientific_status":"READY_FOR_VALIDATION"
+  "experiment_id": "V88-CYCLE5-H24-H27",
+  "prompt_version": "1.9.5",
+  "prompt_sha": "8fab9429fd89f05bf6cc74da8f3fba8458814978",
+  "hypotheses": [
+    "H24_OI_SHOCK_CAPITULATION",
+    "H25_OI_LONG_SHORT_DIVERGENCE",
+    "H26_BOOKDEPTH_IMBALANCE_REVERSION",
+    "H27_BOOKDEPTH_DEPLETION_CONTINUATION"
+  ],
+  "validation_partition": [
+    "2023-01-01",
+    "2023-03-31"
+  ],
+  "oos_partition": [
+    "2023-04-01",
+    "2023-06-30"
+  ],
+  "holdout_partition": [
+    "2023-07-01",
+    "2023-12-31"
+  ],
+  "oos_status": "LOCKED_AFTER_VALIDATION_SELECTION_ONLY",
+  "compute_layout": [
+    "vectorized",
+    "pipelined"
+  ],
+  "precision_mode": "float32_signal_float64_reduction",
+  "selection_rule": "Validation results are descriptive only; no OOS promotion in this wave.",
+  "real_data_only": true,
+  "scientific_status": "READY_FOR_VALIDATION",
+  "trigger_nonce": "CYCLE5-RUN-AFTER-WORKFLOW-DEPLOY",
+  "workflow_commit": "6e89abb99cdf3880bedef58c266e902332c61f47"
 }
