@@ -1,4 +1,4 @@
-import hashlib,json,io,zipfile
+import hashlib,json,io,zipfile,os
 from pathlib import Path
 from urllib.request import urlopen
 from urllib.error import HTTPError
@@ -7,7 +7,9 @@ import numpy as np, pandas as pd, vectorbt as vbt
 R=Path(__file__).resolve().parent
 SYMS=['APTUSDT','ARBUSDT','OPUSDT','SANDUSDT','MANAUSDT','GALAUSDT','AXSUSDT','DYDXUSDT']
 BTC='BTCUSDT'; SINCE=pd.Timestamp('2023-01-01',tz='UTC'); OOS=pd.Timestamp('2025-10-01',tz='UTC')
-BETA=90; H=6; K=2; FEE=.00055; SLIP=.00050
+BETA=int(os.getenv('H1_BETA','90')); H=int(os.getenv('H1_H','6')); K=2; FEE=.00055; SLIP=.00050
+STAGE=os.getenv('H1_STAGE','OOS'); CONFIG_ID=os.getenv('CONFIG_ID',f'B{BETA}_H{H}'); EXPERIMENT_ID=os.getenv('EXPERIMENT_ID','V88-CYCLE2-H1-V3')
+VALID_START=pd.Timestamp('2024-01-01',tz='UTC')
 
 def get(since,sym):
     parts=[]
@@ -48,13 +50,15 @@ for t in w.index:
     z=rank.loc[t]
     if z.notna().sum()>=K: w.loc[t,z.nsmallest(K).index]=1.0/K
 w=w.shift(1).fillna(0.0)
-m=close.index>=OOS
+m=(close.index>=VALID_START)&(close.index<OOS) if STAGE=='VALIDATION' else (close.index>=OOS)
 c=close.loc[m, w.columns]; ww=w.loc[m]
 pf=vbt.Portfolio.from_orders(c,size=ww,size_type='targetpercent',fees=FEE,slippage=SLIP,init_cash=1.0,cash_sharing=True,group_by=True,call_seq='auto',direction='longonly')
 eq=pf.value(); r=eq.pct_change()
 bm=(1+c.pct_change().mean(axis=1).fillna(0)).cumprod()
 primary=metrics(eq,r); bench=metrics(bm,bm.pct_change()); n=int((ww.diff().abs().sum(axis=1)>0).sum())
-resout={'experiment_id':'V88-CYCLE2-H1-V3','hypothesis_id':'H1_RESIDUAL_XS_MOMENTUM','real_data':True,'source':'Binance Public Data USD-M Futures monthly 4h archive','symbols':SYMS,'oos_start':str(OOS),'vectorbt_version':getattr(vbt,'__version__','unknown'),'primary':primary,'benchmark_equal_weight':bench,'oos_rebalance_events':n,'gate_passed':bool(primary['Sharpe']>=.9 and n>=100 and primary['total_return']>bench['total_return']),'data_sha256':hashlib.sha256(close.loc[m].to_csv().encode()).hexdigest()}
-(R/'H1_RESULT.json').write_text(json.dumps(resout,indent=2))
+screen_passed=bool(primary['Sharpe']>=0.50 and n>=100 and primary['total_return']>bench['total_return'])
+gate_passed=bool(STAGE=='OOS' and primary['Sharpe']>=0.90 and n>=100 and primary['total_return']>bench['total_return'])
+resout={'experiment_id':EXPERIMENT_ID,'config_id':CONFIG_ID,'stage':STAGE,'beta_lookback':BETA,'horizon_bars':H,'hypothesis_id':'H1_RESIDUAL_XS_MOMENTUM','real_data':True,'source':'Binance Public Data USD-M Futures monthly 4h archive','symbols':SYMS,'oos_start':str(OOS),'vectorbt_version':getattr(vbt,'__version__','unknown'),'primary':primary,'benchmark_equal_weight':bench,'oos_rebalance_events':n,'screen_passed':screen_passed,'gate_passed':gate_passed,'data_sha256':hashlib.sha256(close.loc[m].to_csv().encode()).hexdigest()}
+(R/f'H1_RESULT_{CONFIG_ID}_{STAGE}.json').write_text(json.dumps(resout,indent=2))
 (R/'FINAL_STATUS.json').write_text(json.dumps({'task_execution_status':'TASK_COMPLETED_EMPIRICALLY','evidence_status':'EVIDENCE_EMPIRICAL','edge_status':'CANDIDATE_EDGE_PASS' if resout['gate_passed'] else 'NO_EDGE_CONTINUE','experiment_id':'V88-CYCLE2-H1','primary':primary,'benchmark':bench,'oos_rebalance_events':n,'next_action':'INDEPENDENT_HOLDOUT_AND_SURVIVORSHIP_ROBUSTNESS' if resout['gate_passed'] else 'PROMOTE_NEXT_HYPOTHESIS'},indent=2))
 print(json.dumps(resout,indent=2))
