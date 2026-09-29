@@ -6,7 +6,7 @@ import pandas as pd
 
 R=Path("scratch/chatgpt_v88/h16_h19_frontier")
 DATA=R/"data"; DATA.mkdir(parents=True, exist_ok=True)
-SYMS=["BTCUSDT","ETHUSDT","SOLUSDT","DOGEUSDT","INJUSDT","OPUSDT","STXUSDT","LINKUSDT"]
+SYMS=["BTCUSDT","ETHUSDT","SOLUSDT"]
 FUNDING=["BTCUSDT","ETHUSDT","SOLUSDT"]
 MONTHS=pd.date_range("2023-01-01","2023-09-01",freq="MS",tz="UTC")
 BASE="https://data.binance.vision/data/futures/um/monthly"

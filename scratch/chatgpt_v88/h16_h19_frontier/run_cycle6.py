@@ -92,5 +92,5 @@ fn={"H16_1H_FUNDING_CARRY_CONTRARIAN":lambda:h16(frames,funding,start,end),
     "H18_1H_WEEKEND_CALENDAR_REVERSAL":lambda:h18(frames,start,end),
     "H19_1H_VOLATILITY_STATE_CONTINUATION":lambda:h19(frames,start,end)}
 rows=fn[H]()
-out={"experiment_id":"V88-CYCLE6-H16-H19-1H-FRESH-20260929","hypothesis_id":H,"phase":PHASE,"real_data":True,"future_data_hidden":True,"validation_selection_firewall":PHASE!="validation","stats":stats(rows),"data_manifest_sha256":hashlib.sha256((DATA/"DATA_MANIFEST.json").read_bytes()).hexdigest(),"source_file_hashes":hashes}
+out={"experiment_id":"V88-CYCLE6-H16-H19-1H-FRESH-R2-20260929","hypothesis_id":H,"phase":PHASE,"real_data":True,"future_data_hidden":True,"validation_selection_firewall":PHASE!="validation","stats":stats(rows),"data_manifest_sha256":hashlib.sha256((DATA/"DATA_MANIFEST.json").read_bytes()).hexdigest(),"source_file_hashes":hashes}
 (OUT/f"{H}_{PHASE.upper()}.json").write_text(json.dumps(out,indent=2)+"\n"); print(json.dumps(out,indent=2))

@@ -1,13 +1,15 @@
 {
   "trigger_type": "V88_CYCLE6_FRONTIER_PILOT",
-  "launch_id": "V88-CYCLE6-H16-H19-1H-FRESH-20260929-R1",
-  "experiment_id": "V88-CYCLE6-H16-H19-1H-FRESH-20260929",
+  "launch_id": "V88-CYCLE6-H16-H19-1H-FRESH-R2-20260929",
+  "experiment_id": "V88-CYCLE6-H16-H19-1H-FRESH-R2-20260929",
   "scientific_matrix_frozen": true,
   "no_holdout_feedback": true,
   "new_representation": "1h bars with official Binance Vision monthly fundingRate route",
   "reason": "Continue the V88 breadth frontier with four previously untested mechanisms; bounded pilot before any larger search.",
   "parent_commit": "980a6b17fff3bb6e9b2b148497319079d5140bfb",
-  "trigger_revision": 2,
+  "trigger_revision": 3,
   "triggered_by_commit": "315b7b114b249336a7c8eb540737844a36a810d5",
-  "requested_at_utc": "2026-09-29T09:44:00Z"
+  "requested_at_utc": "2026-09-29T09:44:00Z",
+  "repair_revision": 2,
+  "repair_reason": "R1 stopped at acquisition with HTTP 404 before scientific evaluation; R2 uses only BTC/ETH/SOL required by all four preregistered hypotheses."
 }

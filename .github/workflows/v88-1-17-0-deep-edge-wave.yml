@@ -98,7 +98,7 @@ jobs:
           if len(files)!=4: raise SystemExit(f"EXPECTED_4_RESULTS_GOT_{len(files)}")
           rows=[json.load(open(f)) for f in files]
           eligible=[r for r in rows if (r["stats"]["n"] or 0)>=100 and (r["stats"]["mean"] or -1)>0 and (r["stats"]["PF"] or 0)>1 and (r["stats"]["Sharpe"] or -99)>=0.5]
-          out={"experiment_id":"V88-CYCLE6-H16-H19-1H-FRESH-20260929","validation_results":rows,"oos_seen":False,"holdout_seen":False,"selection_firewall":True}
+          out={"experiment_id":"V88-CYCLE6-H16-H19-1H-FRESH-R2-20260929","validation_results":rows,"oos_seen":False,"holdout_seen":False,"selection_firewall":True}
           if not eligible:
               out["selection_status"]="NO_VALIDATION_ELIGIBLE"
           else:

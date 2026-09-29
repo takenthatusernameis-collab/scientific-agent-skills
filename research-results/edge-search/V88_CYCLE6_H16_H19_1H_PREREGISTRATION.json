@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "experiment_id": "V88-CYCLE6-H16-H19-1H-FRESH-20260929",
+  "experiment_id": "V88-CYCLE6-H16-H19-1H-FRESH-R2-20260929",
   "objective": "Freshly preregistered frontier pilot using four previously untested mechanism families, with an independently sourced Binance Vision funding route and 1h representation.",
   "branch": "chatgpt/v88-1-17-0-deep-edge-wave-20260929",
   "real_data_only": true,
@@ -34,21 +34,8 @@
       "timeframe": "1h"
     }
   ],
-  "universe": [
-    "BTCUSDT",
-    "ETHUSDT",
-    "SOLUSDT",
-    "DOGEUSDT",
-    "INJUSDT",
-    "OPUSDT",
-    "STXUSDT",
-    "LINKUSDT"
-  ],
-  "funding_symbols": [
-    "BTCUSDT",
-    "ETHUSDT",
-    "SOLUSDT"
-  ],
+  "universe":["BTCUSDT","ETHUSDT","SOLUSDT"],
+  "funding_symbols":["BTCUSDT","ETHUSDT","SOLUSDT"],
   "partitions": {
     "validation": [
       "2023-01-01",
@@ -72,5 +59,7 @@
   "holdout_selection_forbidden": true,
   "deployment_rule": "never automatic; requires independent rerun plus explicit human approval",
   "data_route": "Binance Vision monthly USD-M Futures 1h klines + monthly fundingRate archives",
+  "repair_revision":2,
+  "repair_reason":"Initial pilot aborted during acquisition because an auxiliary symbol returned HTTP 404 before any scientific evaluation. R2 retains only BTC/ETH/SOL, the exact symbols required by H16-H19, so no previously observed scientific result is altered or selected.",
   "workflow_file": ".github/workflows/v88-1-17-0-deep-edge-wave.yml"
 }
