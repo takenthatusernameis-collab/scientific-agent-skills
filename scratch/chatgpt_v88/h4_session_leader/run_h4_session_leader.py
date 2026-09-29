@@ -182,10 +182,6 @@ def acquire():
     (DATA / "H4_DATA_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest, indent=2))
 
-   "download_count": len(jobs),
-    }
-    (DATA / "H4_DATA_MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    print(json.dumps(manifest, indent=2))
 
 def load_features():
     df = pd.read_csv(DATA / "H4_FEATURES.csv", parse_dates=["date"])
