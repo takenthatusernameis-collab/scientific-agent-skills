@@ -1,0 +1,40 @@
+name: V88 Cycle4 Run Index Observer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v88-h20-h23-run-index-observer.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Index recent Cycle4 workflow runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run list --workflow v88-h20-h23-cycle4.yml --limit 10 --json databaseId,status,conclusion,headSha,url,createdAt,updatedAt             > /tmp/runs.json
+          python - <<'PY'
+          import json, pathlib
+          rows=json.load(open("/tmp/runs.json"))
+          pathlib.Path("research-results/edge-search").mkdir(parents=True,exist_ok=True)
+          pathlib.Path("research-results/edge-search/V88_CYCLE4_RUN_INDEX.json").write_text(
+              json.dumps({"observed_at":"${{ github.event.head_commit.timestamp }}","runs":rows},indent=2)+"\n"
+          )
+          PY
+      - name: Commit run index
+        run: |
+          git config user.name "v88-run-index"
+          git config user.email "v88-run-index@users.noreply.github.com"
+          git add research-results/edge-search/V88_CYCLE4_RUN_INDEX.json
+          git commit -m "V88 Cycle4: record recent workflow run index" || exit 0
+          git push origin HEAD:main
