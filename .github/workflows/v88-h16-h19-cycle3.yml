@@ -120,9 +120,15 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install --disable-pip-version-check --no-input numpy pandas
       - name: Run locked OOS and independent holdout
-        env:
-          HYPOTHESIS: ${{ fromJSON('{"x":"x"}')[HYPOTHESIS] }}
-        run: python scratch/chatgpt_v88/h16_h19/run_h16_h19_confirm.py
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          cfg=json.load(open("H16_H19_CONFIG_LOCK.json"))
+          if cfg.get("family_status")!="CONFIRMATORY_HYPOTHESIS_LOCKED":
+              raise SystemExit("NO_LOCK")
+          os.environ["HYPOTHESIS"]=cfg["selected_hypothesis"]
+          subprocess.run(["python","scratch/chatgpt_v88/h16_h19/run_h16_h19_confirm.py"],check=True)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
