@@ -1,0 +1,15 @@
+{
+  "wave_id": "V88-HEAVY-WAVE-COVERAGE-01",
+  "prompt_version": "1.10.0",
+  "prompt_sha": "afdff17416601e4f2eba9bca2074ea22c650961a",
+  "expected_candidate_slots": 224,
+  "mechanism_classes": 14,
+  "horizons": 4,
+  "market_states": 4,
+  "representations": 5,
+  "coverage_check": "PASS",
+  "launch_mode": "DESIGN_ONCE_LAUNCH_ONCE_MONITOR",
+  "scientific_execution": false,
+  "preflight_only": true,
+  "manifest_sha256": "4ecfd3918046cf49fc93365e159b9d7ea0e0b4fe4bb4ef9e8e9da785031670d7"
+}
