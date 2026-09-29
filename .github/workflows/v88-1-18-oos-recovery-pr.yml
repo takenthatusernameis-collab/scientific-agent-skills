@@ -176,7 +176,7 @@ jobs:
           artifact-ids: ${{ env.INPUT_ARTIFACT_ID }}
           repository: ${{ env.SOURCE_REPO }}
           run-id: ${{ env.SOURCE_RUN_ID }}
-          path: scratch/chatgpt_v88/deep_edge_117/source_inputs
+          path: scratch/chatgpt_v88/deep_edge_117/inputs
       - uses: actions/download-artifact@v4
         with:
           name: v88-1-18-freeze2-repaired
