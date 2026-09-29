@@ -48,3 +48,7 @@ The resulting manifest is self-contained enough for the private control plane to
 The worker should upload the entire `results/V88-HEAVY-WAVE-01` directory as its terminal artifact.
 
 This layer proves execution completeness and immutable handoff. It does not prove that the research code is scientifically correct.
+
+## Notes ownership
+
+The public worker is a compute/evidence surface, not the private research notebook. It should emit immutable machine-readable terminal artifacts only. Durable narrative research notes, decisions, and agent handoffs belong in the private research repository/control plane after the artifact is independently reconciled.
